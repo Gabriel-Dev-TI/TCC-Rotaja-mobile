@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:rotaja/views/entregadores/mapa.dart';
 import 'package:rotaja/views/entregadores/painel.dart';
-import 'package:rotaja/views/entregadores/historico.dart';
-import 'package:rotaja/configuracoes.dart';
+import 'package:rotaja/views/produtos/historico.dart';
+import 'package:rotaja/views/usuario/configuracoes.dart';
+
+import 'package:rotaja/views/animacoes/animacao_erro.dart';
 
 class NavegacaoEntregador extends StatefulWidget {
   const NavegacaoEntregador({super.key});
@@ -14,18 +16,11 @@ class NavegacaoEntregador extends StatefulWidget {
 class _NavegacaoEntregadorState extends State<NavegacaoEntregador> {
   int abaAtual = 1;
 
-  final List<Widget> telas = [Mapa(), Painel(), Historico(), Configuracoes()];
+  final List<Widget> telas = [AnimacaoErro(), Painel(), Historico(), Configuracoes(isEntregador: true,)];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: Image.asset(
-          'assets/imagens/icone.png',
-        ),
-        title: const Text('Olá, Entregador!'),
-      ),
-
       body: SafeArea(child: telas[abaAtual]),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: abaAtual,

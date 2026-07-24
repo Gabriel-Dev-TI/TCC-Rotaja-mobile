@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:rotaja/configuracoes.dart';
-import 'package:rotaja/views/empresas/historico.dart';
+import 'package:rotaja/views/usuario/configuracoes.dart';
+import 'package:rotaja/views/produtos/historico.dart';
 import 'package:rotaja/views/empresas/painel.dart';
+
+import 'package:rotaja/views/entregadores/mapa.dart';
 
 class NavegacaoEmpresa extends StatefulWidget {
   const NavegacaoEmpresa({super.key});
@@ -13,15 +15,11 @@ class NavegacaoEmpresa extends StatefulWidget {
 class _NavegacaoEmpresaState extends State<NavegacaoEmpresa> {
   int abaAtual = 0;
 
-  final List<Widget> telas = [Painel(), Historico(), Configuracoes()];
+  final List<Widget> telas = [Painel(), Historico(),Mapa(), Configuracoes()];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: Image.asset('assets/imagens/icone.png'),
-        title: const Text('Olá, Empresa!'),
-      ),
 
       body: SafeArea(child: telas[abaAtual]),
       bottomNavigationBar: BottomNavigationBar(
@@ -41,6 +39,10 @@ class _NavegacaoEmpresaState extends State<NavegacaoEmpresa> {
           BottomNavigationBarItem(
             icon: Icon(Icons.history),
             label: 'Histórico',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.map),
+            label: 'Mapa',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
