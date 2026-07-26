@@ -64,23 +64,25 @@ Future<String> cadastrarEndereco(Endereco endereco) async {
     LatLng? cordenadas = await conversao.converteEmCordenadas(endereco);
 
     if (cordenadas != null) {
+      
+      endereco.latitude = cordenadas.latitude;
+      endereco.longitude = cordenadas.longitude;
+
+      // Salva no SharedPreferences
+      await salvarSharedPreferences(endereco);
+
+      return 'Endereço salvo com sucesso!';
+      /*
+
       final resposta = await Api().post('/enderecos', endereco.toJson());
-
-      if (resposta.statusCode == 201) {
-        //pega o id do endereco
+        if (resposta.statusCode == 201) {
         endereco = Endereco.fromJson(jsonDecode(resposta.body)['endereco']);
-        endereco.latitude = cordenadas.latitude;
-        endereco.longitude = cordenadas.longitude;
-
-        // Salva no SharedPreferences
-        await salvarSharedPreferences(endereco);
-
-        return 'Endereço salvo com sucesso!';
       } else {
         return "Erro ao salvar endereço.";
-      }
+      }*/
+      
     } else {
-      throw Exception('Endereço inválido.');
+      return 'Endereço inválido.';
     }
   } catch (e) {
     return e.toString();

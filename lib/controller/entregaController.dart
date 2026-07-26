@@ -25,3 +25,38 @@ Future<List<Entregas>?> getHistorico() async {
     return null;
   }
 }
+
+Future<String> cadastraEntrega(Entregas entrega) async {
+  try {
+    final resposta = await Api().post('/entregas', entrega.toJson());
+
+    if (resposta.statusCode == 201 && resposta.body.isNotEmpty) {
+
+      return 'Entrega cadastrada com sucesso!';
+    } else if (resposta.body.isNotEmpty) {
+      final dados = jsonDecode(resposta.body);
+      return dados['mensagem'];
+    } else {
+      return "Erro ao consultar servidor.";
+    }
+  } catch (e) {
+    return 'Falha ao conectar com o servidor. Verifique sua conexão.';
+  }
+}
+
+Future<Entregas?> getEntregaId(dynamic id) async {
+  try {
+    final client = Api();
+    // Ajustada a interpolação para '/entregas/$id'
+    final resposta = await client.get('/entregas/$id');
+
+    if (resposta.statusCode == 200 && resposta.body.isNotEmpty) {
+      final jsonBody = jsonDecode(resposta.body);
+      return Entregas.fromJson(jsonBody['dados']);
+    }
+    return null;
+  } catch (e) {
+    print('Erro ao buscar entrega por ID: $e');
+    return null;
+  }
+}

@@ -33,7 +33,7 @@ Future<String> fazLogin ({required TextEditingController email, required TextEdi
         return dados['mensagem'];
       }
       else {
-        return "Erro ao consultar servidor.";
+        return "Erro ao consultar servidor. ${resposta.statusCode}";
         
       }
     } catch (e) {

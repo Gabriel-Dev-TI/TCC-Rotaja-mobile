@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:rotaja/controller/entregadorController.dart';
 import 'package:rotaja/model/entregador.dart';
 import 'package:rotaja/model/usuario.dart';
-import 'package:rotaja/views/animacoes/animacao_carregando.dart';
+import 'package:rotaja/views/animacoes/animacao_carregandoBtn.dart';
 import 'package:rotaja/views/widgets/snackbar.dart';
 
 class EntregadorCadastro extends StatefulWidget {
@@ -281,7 +281,7 @@ class _EntregadorCadastroState extends State<EntregadorCadastro> {
                   child: ElevatedButton(
                     onPressed: isLoading ? null : cadastrar,
                     child: isLoading
-                        ? AnimacaoCarregando()
+                        ? AnimacaoCarregandoBtn()
                         : Text(
                             'Cadastrar',
                             style: tema.textTheme.bodyLarge!.copyWith(

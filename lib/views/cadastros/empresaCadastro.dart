@@ -1,12 +1,11 @@
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:rotaja/controller/empresaController.dart';
-import 'package:rotaja/controller/enderecoController.dart';
 import 'package:rotaja/model/empresa.dart';
 import 'package:rotaja/model/endereco.dart';
 import 'package:rotaja/model/usuario.dart';
-import 'package:rotaja/views/animacoes/animacao_carregando.dart';
-import 'package:rotaja/views/cadastros/enderecoCadastro.dart';
+import 'package:rotaja/views/animacoes/animacao_carregandoBtn.dart';
+import 'package:rotaja/views/widgets/dropdownitems.dart';
 import 'package:rotaja/views/widgets/snackbar.dart';
 
 class EmpresaCadastro extends StatefulWidget {
@@ -28,14 +27,6 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
   Endereco? _enderecoController;
   bool senhaObscure = true;
   bool isLoading = false;
-  List<Endereco> _listaEnderecos = [];
-  
-
-  @override
-  void initState() {
-    super.initState();
-    carregarEnderecos();
-  }
 
   @override
   void dispose() {
@@ -45,33 +36,6 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
     _cnpjController.dispose();
     _telefoneController.dispose();
     super.dispose();
-  }
-
-  Future<void> carregarEnderecos() async {
-    final enderecos = await listarSharedPreferences();
-    if (mounted) {
-      setState(() => _listaEnderecos = enderecos);
-    }
-  }
-
-  Future<void> abrirCadastroEndereco() async {
-    final Endereco? enderecoNovo = await showDialog<Endereco>(
-      context: context,
-      builder: (context) => const EnderecoCadastro(),
-    );
-
-    if (enderecoNovo != null) {
-      await carregarEnderecos();
-
-      if (mounted) {
-        setState(() {
-          _enderecoController = _listaEnderecos.firstWhere(
-            (e) => e.id == enderecoNovo.id,
-            orElse: () => enderecoNovo,
-          );
-        });
-      }
-    }
   }
 
   void cadastrar() async {
@@ -108,61 +72,10 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
     setState(() => isLoading = false);
   }
 
-  List<DropdownMenuItem<int?>> buildDropdownItems() {
-    final List<DropdownMenuItem<int?>> lista = [];
-
-    // Usamos -1 para a opção de cadastrar 
-    lista.add(
-      DropdownMenuItem<int?>(
-        value: -1,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                'Cadastrar endereço',
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-            ),
-            Icon(Icons.add, color: Theme.of(context).colorScheme.primary),
-          ],
-        ),
-      ),
-    );
-
-    for (var endereco in _listaEnderecos) {
-      if (endereco.id != null) {
-        lista.add(
-          DropdownMenuItem<int?>(
-            value: endereco.id,
-            child: Text(
-              '${endereco.logradouro}, ${endereco.numero}',
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ),
-        );
-      }
-    }
-
-    return lista;
-  }
-
   @override
   Widget build(BuildContext context) {
     final tema = Theme.of(context);
     final primaryColor = tema.colorScheme.primary;
-
-    //Garante que que o id do endereco esteja na lista
-    final int? valorSeguro =
-        (_enderecoController?.id != null &&
-            _listaEnderecos.any((e) => e.id == _enderecoController?.id))
-        ? _enderecoController?.id
-        : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -314,35 +227,14 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
                         ),
                         const SizedBox(height: 12),
 
-                        DropdownButtonFormField<int?>(
-                          // A Key força o Flutter a recriar o Dropdown do zero se o ID selecionado mudar
-                          key: ValueKey(valorSeguro),
-                          initialValue: -1,
-                          isExpanded: true,
-                          decoration: const InputDecoration(
-                            labelText: 'Endereço da Empresa',
-                            prefixIcon: Icon(Icons.location_on_outlined),
-                          ),
-                          hint: Text(
-                            'Cadastre um endereço',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          items: buildDropdownItems(),
-                          onChanged: (int? novoValor) {
-                            if (novoValor == -1) {
-                              abrirCadastroEndereco();
-                            } else if (novoValor != null) {
-                              setState(() {
-                                _enderecoController = _listaEnderecos
-                                    .firstWhere((e) => e.id == novoValor);
-                              });
-                            }
-                          },
-                          validator: (value) {
-                            if (_enderecoController == null) {
-                              return 'Selecione ou cadastre um endereço';
-                            }
-                            return null;
+                        DropDownEndereco(
+                          enderecoSelecionado: _enderecoController,
+                          label: 'da Empresa',
+                          icon: const Icon(Icons.location_on_outlined),
+                          onChanged: (novoEndereco) {
+                            setState(() {
+                              _enderecoController = novoEndereco;
+                            });
                           },
                         ),
                       ],
@@ -356,7 +248,7 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
                   child: ElevatedButton(
                     onPressed: isLoading ? null : cadastrar,
                     child: isLoading
-                        ? AnimacaoCarregando()
+                        ? AnimacaoCarregandoBtn()
                         : Text(
                             'Cadastrar',
                             style: tema.textTheme.bodyLarge!.copyWith(

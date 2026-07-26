@@ -50,7 +50,7 @@ class Empresa extends Usuario {
       'created_at': criadoEm?.toIso8601String(),
       'cnpj': cnpj,
       'telefone': telefone,
-      'endereco_id': endereco?.id,
+      'endereco': endereco?.toJson(),
     };
   }
 }

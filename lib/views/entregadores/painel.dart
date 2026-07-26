@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:rotaja/model/entregas.dart';
 import 'package:rotaja/repository/api.dart';
+import 'package:rotaja/views/animacoes/animacao_carregando.dart';
 
 class Painel extends StatefulWidget {
   const Painel({super.key});
@@ -20,24 +21,20 @@ class _PainelState extends State<Painel> {
     _entregasDisponiveisFuture = _getEntregasDisponiveis();
   }
 
-  // Busca na API as entregas pendentes
   Future<List<Entregas>?> _getEntregasDisponiveis() async {
     try {
       final client = Api();
-      final resposta = await client.get('/historico'); // Ajuste o endpoint conforme sua API para buscar disponíveis
+      final resposta = await client.get('/entregas'); 
 
       if (resposta.statusCode == 200 && resposta.body.isNotEmpty) {
         final jsonBody = jsonDecode(resposta.body);
 
-        final List listData = jsonBody is Map<String, dynamic>
-            ? (jsonBody['dados'] ?? jsonBody['data'] ?? [])
-            : jsonBody;
+        final List lista = jsonBody['dados'] ?? [];
 
-        return listData
+        return lista
             .map((item) => Entregas.fromJson(item))
-            .where((e) => e.status == Status.pendente || e.status == Status.em_transito)
             .toList();
-      }
+        }
       return null;
     } catch (e) {
       debugPrint('Erro ao buscar entregas: $e');
@@ -68,9 +65,8 @@ class _PainelState extends State<Painel> {
             ),
             const SizedBox(height: 24),
 
-            // Card de Status do Entregador
             Card(
-              elevation: 0,
+              elevation: 2,
               color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -129,12 +125,6 @@ class _PainelState extends State<Painel> {
                         width: 90,
                         height: 90,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          width: 90,
-                          height: 90,
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.person, size: 50, color: Colors.grey),
-                        ),
                       ),
                     ),
                   ],
@@ -144,7 +134,6 @@ class _PainelState extends State<Painel> {
 
             const SizedBox(height: 32),
 
-            // Cabeçalho da Lista
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -167,14 +156,11 @@ class _PainelState extends State<Painel> {
             ),
             const SizedBox(height: 12),
 
-            // Renderização da Lista via FutureBuilder
             FutureBuilder<List<Entregas>?>(
               future: _entregasDisponiveisFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+                  return AnimacaoCarregando();
                 }
 
                 if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
@@ -199,7 +185,7 @@ class _PainelState extends State<Painel> {
 
                 return ListView.separated(
                   shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
+                  physics: const BouncingScrollPhysics(),
                   itemCount: listaEntregas.length,
                   separatorBuilder: (context, index) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
@@ -215,17 +201,14 @@ class _PainelState extends State<Painel> {
     );
   }
 
-  // Card com dados dinâmicos do Objeto
   Widget _buildEntregaCard(TextTheme tema, ColorScheme cores, Entregas entrega) {
-    final hora =
-        '${entrega.criadoEm.hour.toString().padLeft(2, '0')}:${entrega.criadoEm.minute.toString().padLeft(2, '0')}';
-
+    
     return InkWell(
       onTap: () {
         Navigator.pushNamed(
           context,
-          '/produto',
-          arguments: entrega, // 👈 Passa o objeto completo para a tela de produto
+          '/mapa',
+          arguments: entrega.id, 
         );
       },
       borderRadius: BorderRadius.circular(16),
@@ -237,63 +220,66 @@ class _PainelState extends State<Painel> {
           border: Border.all(color: Colors.grey.shade200),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black,
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: const Color(0x157B33F4),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.location_pin, color: Color(0xFF7B33F4)),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    entrega.empresa.nome.isNotEmpty
-                        ? entrega.empresa.nome
-                        : 'Entrega #${entrega.id ?? '---'}',
-                    style: tema.titleSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${entrega.origem.bairro} ➔ ${entrega.destino.bairro}',
-                    style: tema.bodySmall?.copyWith(color: Colors.grey[600]),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+        child:
+         Column(
+           children: [
+             Row(
               children: [
-                Text(
-                  'R\$ ${entrega.preco.toStringAsFixed(2).replaceAll('.', ',')}',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF7B33F4),
+                 
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        entrega.empresa!.nome.isNotEmpty
+                            ? entrega.empresa!.nome
+                            : 'Entrega #${entrega.id ?? '---'}',
+                        style: tema.titleSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${entrega.origem.bairro} => ${entrega.destino.bairro}',
+                        style: tema.bodySmall?.copyWith(color: Colors.grey[600]),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
-                Text(
-                  hora,
-                  style: tema.bodySmall?.copyWith(color: Colors.grey[500], fontSize: 11),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'R\$ ${entrega.preco!.toStringAsFixed(2).replaceAll('.', ',')}',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF7B33F4),
+                      ),
+                      
+                    ),
+                    Text(
+                      '',
+                      style: tema.bodySmall?.copyWith(color: Colors.grey[500], fontSize: 11),
+                    ),
+                  ],
                 ),
               ],
-            ),
-          ],
-        ),
+                     ),
+                     SizedBox(height: 10,),
+                     SizedBox(
+                      width: double.infinity,
+                      height: 40,
+                      child: ElevatedButton(onPressed: (){}, child: Text('Aceitar Entrega')))
+           ],
+         ),
       ),
     );
   }

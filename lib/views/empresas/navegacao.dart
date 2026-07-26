@@ -3,7 +3,6 @@ import 'package:rotaja/views/usuario/configuracoes.dart';
 import 'package:rotaja/views/produtos/historico.dart';
 import 'package:rotaja/views/empresas/painel.dart';
 
-import 'package:rotaja/views/entregadores/mapa.dart';
 
 class NavegacaoEmpresa extends StatefulWidget {
   const NavegacaoEmpresa({super.key});
@@ -15,7 +14,7 @@ class NavegacaoEmpresa extends StatefulWidget {
 class _NavegacaoEmpresaState extends State<NavegacaoEmpresa> {
   int abaAtual = 0;
 
-  final List<Widget> telas = [Painel(), Historico(),Mapa(), Configuracoes()];
+  final List<Widget> telas = [Painel(), Historico(),Configuracoes()];
 
   @override
   Widget build(BuildContext context) {
@@ -39,10 +38,6 @@ class _NavegacaoEmpresaState extends State<NavegacaoEmpresa> {
           BottomNavigationBarItem(
             icon: Icon(Icons.history),
             label: 'Histórico',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: 'Mapa',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),

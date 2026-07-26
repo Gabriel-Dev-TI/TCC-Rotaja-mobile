@@ -1,7 +1,7 @@
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:rotaja/controller/usuarioController.dart';
-import 'package:rotaja/views/animacoes/animacao_carregando.dart';
+import 'package:rotaja/views/animacoes/animacao_carregandoBtn.dart';
 import 'package:rotaja/views/widgets/snackbar.dart';
 
 class Login extends StatefulWidget {
@@ -157,7 +157,7 @@ class _LoginState extends State<Login> {
                     child: ElevatedButton(
                       onPressed: isLoading ? null : fazerLogin,
                       child: isLoading
-                          ? AnimacaoCarregando()
+                          ? AnimacaoCarregandoBtn()
                           : Text(
                               'Entrar',
                               style: tema.textTheme.bodyLarge!.copyWith(

@@ -6,6 +6,7 @@ import 'package:rotaja/views/cadastros/enderecoCadastro.dart';
 import 'package:rotaja/views/cadastros/entregaCadastro.dart';
 import 'package:rotaja/views/cadastros/entregadorCadastro.dart';
 import 'package:rotaja/views/empresas/lista_enderecos.dart';
+import 'package:rotaja/views/entregadores/mapa.dart';
 import 'package:rotaja/views/produtos/produto.dart';
 import 'package:rotaja/views/entregadores/navegacao.dart';
 import 'package:rotaja/views/empresas/navegacao.dart';
@@ -132,6 +133,7 @@ class MyApp extends StatelessWidget {
         '/listaEnderecos': (context) => const ListaEnderecos(),
         '/produto': (context) => const Produto(),
         '/dados': (context) => const Dados(),
+        '/mapa': (context) => const Mapa(),
       },
     );
   }

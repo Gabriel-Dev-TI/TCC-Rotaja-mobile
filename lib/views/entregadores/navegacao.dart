@@ -4,8 +4,6 @@ import 'package:rotaja/views/entregadores/painel.dart';
 import 'package:rotaja/views/produtos/historico.dart';
 import 'package:rotaja/views/usuario/configuracoes.dart';
 
-import 'package:rotaja/views/animacoes/animacao_erro.dart';
-
 class NavegacaoEntregador extends StatefulWidget {
   const NavegacaoEntregador({super.key});
 
@@ -16,7 +14,12 @@ class NavegacaoEntregador extends StatefulWidget {
 class _NavegacaoEntregadorState extends State<NavegacaoEntregador> {
   int abaAtual = 1;
 
-  final List<Widget> telas = [AnimacaoErro(), Painel(), Historico(), Configuracoes(isEntregador: true,)];
+  final List<Widget> telas = [
+    Mapa(),
+    Painel(),
+    Historico(),
+    Configuracoes(isEntregador: true),
+  ];
 
   @override
   Widget build(BuildContext context) {

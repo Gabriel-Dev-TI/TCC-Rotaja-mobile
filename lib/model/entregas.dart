@@ -7,29 +7,33 @@ enum Status { pendente, em_transito, concluido, cancelado }
 
 class Entregas {
   int? id;
-  Empresa empresa;
+  Empresa? empresa;
   Entregador? entregador;
   Endereco origem;
   Endereco destino;
-  Status status;
-  double preco;
+  Status? status;
+  double? preco;
+  double peso;
   double altura;
   double largura;
   String? observacoes;
-  DateTime criadoEm;
+  String? data;
+  String? hora;
 
   Entregas({
     this.id,
-    required this.empresa,
+    this.empresa,
     this.entregador,
     required this.origem,
     required this.destino,
-    required this.status,
-    required this.preco,
+    this.status,
+    this.preco,
+    required this.peso,
     required this.largura,
     required this.altura,
     this.observacoes,
-    required this.criadoEm,
+    this.data,
+    this.hora
   });
 
   factory Entregas.fromJson(Map<String, dynamic> json) {
@@ -71,29 +75,29 @@ class Entregas {
       ),
 
       preco: double.tryParse(json['preco']?.toString() ?? '') ?? 0.0,
+      peso: double.tryParse(json['peso']?.toString() ?? '') ?? 0.0,
       altura: double.tryParse(json['altura']?.toString() ?? '') ?? 0.0,
       largura: double.tryParse(json['largura']?.toString() ?? '') ?? 0.0,
 
       observacoes: json['observacoes']?.toString(),
-      criadoEm:
-          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
-          DateTime.now(),
+      data:json['data'],
+      hora:json['hora']
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'empresa': empresa.toJson(),
+      'empresa': empresa?.toJson(),
       'entregador': entregador?.toJson(),
-      'endereco_origem': origem.toJson(),
-      'endereco_destino': destino.toJson(),
-      'status': status.name,
+      'origem': origem.toJson(),
+      'destino': destino.toJson(),
+      'status': status?.name,
       'preco': preco,
+      'peso': peso,
       'altura': altura,
       'largura': largura,
       'observacoes': observacoes,
-      'created_at': criadoEm.toIso8601String(),
     };
   }
 }

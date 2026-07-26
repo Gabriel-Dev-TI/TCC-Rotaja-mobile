@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:rotaja/controller/enderecoController.dart';
 import 'package:rotaja/model/endereco.dart';
 import 'package:rotaja/repository/cep.dart';
-import 'package:rotaja/views/animacoes/animacao_carregando.dart';
+import 'package:rotaja/views/animacoes/animacao_carregandoBtn.dart';
 import 'package:rotaja/views/widgets/snackbar.dart';
 
 class EnderecoCadastro extends StatefulWidget {
@@ -83,10 +83,7 @@ class _EnderecoCadastroState extends State<EnderecoCadastro> {
   bool cadastroFalhou = resposta != 'Endereço salvo com sucesso!';
 
   if (!cadastroFalhou && mounted) {
-    List<Endereco> lista = await listarSharedPreferences();
-    Endereco ultimoAdicionado = lista.last;
-
-    Navigator.pop(context, ultimoAdicionado);
+    Navigator.pop(context, endereco);
   }
 
     mostraSnackBar.show(context, resposta, cadastroFalhou);
@@ -218,7 +215,7 @@ class _EnderecoCadastroState extends State<EnderecoCadastro> {
           height: 35,
           child: ElevatedButton(
             onPressed: isLoading ? null : salvar,
-            child: isLoading ? AnimacaoCarregando() : const Text('Salvar'),
+            child: isLoading ? AnimacaoCarregandoBtn() : const Text('Salvar'),
           ),
         ),
       ],

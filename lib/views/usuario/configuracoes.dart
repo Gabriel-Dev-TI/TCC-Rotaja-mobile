@@ -33,13 +33,16 @@ class _ConfiguracoesState extends State<Configuracoes> {
       child: Column(
         crossAxisAlignment: .start,
         children: [
-          Row(
-            mainAxisAlignment: .center,
-            children: [Text("Configurações", style: tema.titleLarge)],
+          Padding(
+            padding: const EdgeInsets.only(bottom: 20.0, left: 4.0),
+            child: Text(
+              'Configurações',
+              style: tema.titleLarge,
+            ),
           ),
           SizedBox(height: 20),
           Text("Conta", style: tema.titleMedium),
-          GestureDetector(
+          InkWell(
             onTap: () async {
               Navigator.pushNamed(context, '/dados');
             },
@@ -54,7 +57,7 @@ class _ConfiguracoesState extends State<Configuracoes> {
 
           //O entregador não precisa cadastrar enderecos
           if(isEntregador == null || isEntregador == false)
-          GestureDetector(
+          InkWell(
             onTap: () async {
               Navigator.pushNamed(context, '/listaEnderecos');
             },
@@ -81,14 +84,8 @@ class _ConfiguracoesState extends State<Configuracoes> {
             shape: bordaArredondada(5, temaCor.tertiary),
           ),
           SizedBox(height: 20),
-          GestureDetector(
+          InkWell(
             onTap: () async {
-
-              final resposta = await Api().get('/logout');
-              if(resposta.statusCode != 200){
-                mostraSnackBar.show(context, 'Conecte-se a internet para sair da conta', true);
-                return;
-              }
 
               SharedPreferences prefs = await SharedPreferences.getInstance();
               prefs.clear();
