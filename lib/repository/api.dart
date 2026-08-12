@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Api {
-  static const String baseUrl = 'https://rotaja.wasmer.app/index.php/api';
+  static const String baseUrl = 'http://localhost:8000/api';
 
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
