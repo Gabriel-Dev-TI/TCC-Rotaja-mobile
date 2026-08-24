@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'package:rotaja/model/endereco.dart';
 import 'package:rotaja/model/entregas.dart';
 import 'package:rotaja/repository/api.dart';
+import 'package:http/http.dart' as http;
 
 Future<List<Entregas>?> getHistorico() async {
   try {
@@ -57,6 +59,68 @@ Future<Entregas?> getEntregaId(dynamic id) async {
     return null;
   } catch (e) {
     print('Erro ao buscar entrega por ID: $e');
+    return null;
+  }
+}
+
+Future<Entregas?> calculaRota(Entregas entrega) async {
+  if (entrega.origem?.latitude == null ||
+      entrega.origem?.longitude == null ||
+      entrega.destino?.latitude == null ||
+      entrega.destino?.longitude == null) {
+    return null;
+  }
+
+  try {
+    final longitudeOrigem = entrega.origem!.longitude!;
+    final latitudeOrigem = entrega.origem!.latitude!;
+
+    final longitudeDestino = entrega.destino!.longitude!;
+    final latitudeDestino = entrega.destino!.latitude!;
+
+    final url = Uri.parse(
+      'https://router.project-osrm.org/route/v1/driving/'
+      '$longitudeOrigem,$latitudeOrigem;'
+      '$longitudeDestino,$latitudeDestino'
+      '?overview=false',
+    );
+
+    final response = await http.get(url);
+
+    if (response.statusCode != 200) {
+      return null;
+    }
+
+    final dados = jsonDecode(response.body);
+
+    if (dados['code'] != 'Ok') {
+      return null;
+    }
+
+    final rota = dados['routes'][0];
+
+    // Distância vem em metros
+    final distanciaMetros =
+        (rota['distance'] as num).toDouble();
+
+    // Converte para quilômetros
+    final distanciaKm = distanciaMetros / 1000;
+
+    // Duração vem em segundos
+    final duracaoSegundos =
+        (rota['duration'] as num).toDouble();
+
+    // Converte para minutos
+    final tempoMinutos =
+        (duracaoSegundos / 60).ceil();
+
+    // Coloca os valores no objeto da entrega
+    entrega.distancia = distanciaKm;
+    entrega.tempoEstimado = tempoMinutos;
+
+    return entrega;
+  } catch (e) {
+    print('Erro ao calcular rota: $e');
     return null;
   }
 }

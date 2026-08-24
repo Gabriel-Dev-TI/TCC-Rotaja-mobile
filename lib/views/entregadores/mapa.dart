@@ -58,10 +58,10 @@ class _MapaState extends State<Mapa> {
     }
 
     // Verifica se os endereços possuem latitude e longitude preenchidos
-    if (entrega.origem.latitude == null ||
-        entrega.origem.longitude == null ||
-        entrega.destino.latitude == null ||
-        entrega.destino.longitude == null) {
+    if (entrega.origem!.latitude == null ||
+        entrega.origem!.longitude == null ||
+        entrega.destino!.latitude == null ||
+        entrega.destino!.longitude == null) {
       setState(() {
         carregando = false;
         mensagemErro =
@@ -72,8 +72,8 @@ class _MapaState extends State<Mapa> {
 
     List<LatLng>? coordenadas = await buscarRota(
       context,
-      entrega.origem,
-      entrega.destino,
+      entrega.origem!,
+      entrega.destino!,
     );
 
     if (coordenadas == null || coordenadas.isEmpty) {
@@ -89,12 +89,12 @@ class _MapaState extends State<Mapa> {
         carregando = false;
         pontosDaRota = coordenadas;
         pontoInicio = LatLng(
-          entrega.origem.latitude!,
-          entrega.origem.longitude!,
+          entrega.origem!.latitude!,
+          entrega.origem!.longitude!,
         );
         pontoFim = LatLng(
-          entrega.destino.latitude!,
-          entrega.destino.longitude!,
+          entrega.destino!.latitude!,
+          entrega.destino!.longitude!,
         );
       });
     }

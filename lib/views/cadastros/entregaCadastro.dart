@@ -53,7 +53,17 @@ class _EntregaCadastroState extends State<EntregaCadastro> {
       peso: double.tryParse(_pesoController.text.replaceAll(',', '.')) ?? 0.0,
     );
 
-    String resposta = await cadastraEntrega(entrega);
+    Entregas? entregaCompleta = await calculaRota(entrega);
+
+    if(entregaCompleta == null){
+      if (mounted) {
+      mostraSnackBar.show(context, 'Erro ao traçar dados da entrega', true);
+      setState(() => isLoading = false);
+    }
+    }
+    else{
+
+    String resposta = await cadastraEntrega(entregaCompleta!);
     bool cadastroFalhou = resposta != 'Entrega cadastrada com sucesso!';
 
     if (mounted) {
@@ -62,7 +72,7 @@ class _EntregaCadastroState extends State<EntregaCadastro> {
       }
       mostraSnackBar.show(context, resposta, cadastroFalhou);
       setState(() => isLoading = false);
-    }
+    }}
   }
 
   @override

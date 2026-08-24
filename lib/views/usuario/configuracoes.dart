@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:rotaja/repository/api.dart';
-import 'package:rotaja/views/widgets/snackbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Configuracoes extends StatefulWidget {

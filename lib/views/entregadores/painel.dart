@@ -13,7 +13,6 @@ class Painel extends StatefulWidget {
 
 class _PainelState extends State<Painel> {
   late Future<List<Entregas>?> _entregasDisponiveisFuture;
-  bool _disponivel = true;
 
   @override
   void initState() {
@@ -65,75 +64,7 @@ class _PainelState extends State<Painel> {
             ),
             const SizedBox(height: 24),
 
-            Card(
-              elevation: 2,
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Colors.grey.shade200, width: 1),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Status atual',
-                                style: tema.titleSmall?.copyWith(color: Colors.grey[600]),
-                              ),
-                              Switch(
-                                value: _disponivel,
-                                onChanged: (val) {
-                                  setState(() {
-                                    _disponivel = val;
-                                  });
-                                },
-                                activeTrackColor: Colors.green,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _disponivel ? 'Disponível' : 'Indisponível',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: _disponivel ? Colors.green.shade700 : Colors.red.shade700,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                           ( _disponivel
-                                ? 'Você está visível para receber novas rotas.'
-                                : 'Ative o status para aceitar novos pedidos.'),
-                            style: tema.bodyMedium?.copyWith(color: Colors.grey[600]),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.asset(
-                        'assets/imagens/entregador.png',
-                        width: 90,
-                        height: 90,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
+            
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -245,7 +176,7 @@ class _PainelState extends State<Painel> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${entrega.origem.bairro} => ${entrega.destino.bairro}',
+                        '${entrega.origem!.bairro} => ${entrega.destino!.bairro}',
                         style: tema.bodySmall?.copyWith(color: Colors.grey[600]),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

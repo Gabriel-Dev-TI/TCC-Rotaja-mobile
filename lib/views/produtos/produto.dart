@@ -100,7 +100,7 @@ class _ProdutoState extends State<Produto> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                '${entrega.origem.logradouro}, ${entrega.origem.numero} - ${entrega.origem.bairro}, ${entrega.origem.cidade}/${entrega.origem.estado}',
+                                '${entrega.origem!.logradouro}, ${entrega.origem!.numero} - ${entrega.origem!.bairro}, ${entrega.origem!.cidade}/${entrega.origem!.estado}',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.grey[600],
@@ -140,18 +140,18 @@ class _ProdutoState extends State<Produto> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                '${entrega.destino.logradouro}, ${entrega.destino.numero} - ${entrega.destino.bairro}, ${entrega.destino.cidade}/${entrega.destino.estado}',
+                                '${entrega.destino!.logradouro}, ${entrega.destino!.numero} - ${entrega.destino!.bairro}, ${entrega.destino!.cidade}/${entrega.destino!.estado}',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.grey[600],
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              if (entrega.destino.complemento != null &&
-                                  entrega.destino.complemento!.isNotEmpty) ...[
+                              if (entrega.destino!.complemento != null &&
+                                  entrega.destino!.complemento!.isNotEmpty) ...[
                                 const SizedBox(height: 2),
                                 Text(
-                                  'Comp: ${entrega.destino.complemento}',
+                                  'Comp: ${entrega.destino!.complemento}',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey[500],

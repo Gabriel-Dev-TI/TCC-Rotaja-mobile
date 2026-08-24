@@ -34,9 +34,9 @@ class MyApp extends StatelessWidget {
           seedColor: corRoxa,
           primary: corRoxa,
           secondary: Color(0xFF090D16),
-          onSecondary: Colors.white,
+          onSecondary: const Color(0xFFF8F9FA),
           tertiary: Colors.grey[600],
-          surface: const Color(0xFFF8F9FA),
+          surface: Colors.white,
           onSurface: const Color(0xFF1C1B1F),
         ),
         textTheme: const TextTheme(

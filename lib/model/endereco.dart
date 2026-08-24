@@ -33,8 +33,8 @@ class Endereco {
       estado: json['estado'] ?? '',
       cep: json['cep'] ?? '',
       complemento: json['complemento'] ,
-      latitude: json['latitude'] != null ? double.tryParse(json['latitude'].toString()) : null,
-      longitude: json['longitude'] != null ? double.tryParse(json['longitude'].toString()) : null,
+      latitude: json['latitude'] != null ? double.tryParse(json['latitude']) : null,
+      longitude: json['longitude'] != null ? double.tryParse(json['longitude']) : null,
     );
   }
 
@@ -51,17 +51,4 @@ class Endereco {
     'longitude' : longitude,
   };
 }   
-
-
-factory Endereco.vazio() {
-  return Endereco(
-    logradouro: '',
-    numero: '',
-    bairro: '',
-    cep: '',
-    cidade: '',
-    estado: '',
-  );
-}
-
 }

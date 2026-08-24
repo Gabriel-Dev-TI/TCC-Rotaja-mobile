@@ -156,7 +156,7 @@ class _PainelState extends State<Painel> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        '${entrega.origem.bairro}  =>  ${entrega.destino.bairro}',
+                                        '${entrega.origem!.bairro}  =>  ${entrega.destino!.bairro}',
                                         style: tema.textTheme.bodySmall
                                             ?.copyWith(color: Colors.grey[600]),
                                         maxLines: 1,

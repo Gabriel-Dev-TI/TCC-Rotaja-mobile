@@ -22,14 +22,15 @@ class _SplashState extends State<Splash> {
   }
 
   Future<void> redirecionamento() async {
-    String? cargo = await verificaCargo();
-    bool token = await verificaToken();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    // Garante que o widget ainda está na árvore antes de navegar
-    if (!mounted) return;
+    String? cargo = prefs.getString('cargo');
+    bool? existeToken = prefs.getString('token') != null;
 
-    if (token && cargo != null) {
-        Navigator.pushReplacementNamed(context, await atualizaDados() ? '/${cargo}' : '/escolha');
+    if (existeToken && cargo != null) {
+      await atualizaDados();
+      Navigator.pushReplacementNamed(context,'/${cargo}');
+      
     } else {
       Navigator.pushReplacementNamed(context, '/escolha');
     }
@@ -73,18 +74,6 @@ class _SplashState extends State<Splash> {
     }
   }
 
-  Future<bool> verificaToken() async {
-    // Se o token existir retorna true
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token') != null;
-  }
-
-  Future<String?> verificaCargo() async {
-    // Retorna o cargo caso exista
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('cargo');
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,6 +83,7 @@ class _SplashState extends State<Splash> {
           width: MediaQuery.sizeOf(context).width * .5,
           height: MediaQuery.sizeOf(context).height * .3,
         ),
+        
       ),
     );
   }

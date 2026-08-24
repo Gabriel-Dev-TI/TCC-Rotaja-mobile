@@ -40,7 +40,6 @@ class _DadosState extends State<Dados> {
       'cpf': null,
       'cnpj': null,
       'tipo_veiculo': null,
-      'placa': null,
       'endereco': null,
     };
 
@@ -64,9 +63,7 @@ class _DadosState extends State<Dados> {
 
       if (entregador != null) {
         resultado['cpf'] = entregador['cpf'];
-        resultado['tipo_veiculo'] =
-            entregador['tipo_veiculo'];
-        resultado['placa'] = entregador['placa'];
+        resultado['tipo_veiculo'] = entregador['tipo_veiculo'];
       }
     }
 
@@ -201,13 +198,6 @@ class _DadosState extends State<Dados> {
                         titulo: 'Endereço',
                         valor: dados['endereco'] ?? '',
                       ),
-
-                    if (!empresa)
-                      linha(
-                        titulo: 'Placa',
-                        valor: dados['placa'] ?? '',
-                      ),
-
                     if (!empresa)
                       linha(
                         titulo: 'Tipo de veículo',
