@@ -13,6 +13,7 @@ Future<String> cadastraEntregador(Entregador entregador) async {
       final prefs = await SharedPreferences.getInstance();
 
       await prefs.setString('token', dados['token']);
+      await prefs.setString('usuario', dados['usuario']);
       await prefs.setString('cargo', 'entregador');
 
       return "Entregador cadastrado com sucesso";

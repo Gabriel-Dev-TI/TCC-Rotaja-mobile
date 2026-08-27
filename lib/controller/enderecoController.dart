@@ -8,44 +8,42 @@ import 'package:latlong2/latlong.dart';
 Future<void> salvarSharedPreferences(Endereco endereco) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
 
-  //pega os enderecos do sharedPreferences
   String? enderecosJson = prefs.getString('enderecos');
+  List<Endereco> listaEnderecos = [];
 
-  //lista para os enderecos maps
-  List<Map<String, dynamic>> listaEnderecos = [];
-
-  //Transforma os enderecos de json para uma lista de maps
   if (enderecosJson != null && enderecosJson.isNotEmpty) {
     try {
       List<dynamic> lista = jsonDecode(enderecosJson);
-
       listaEnderecos = lista
-          .map((item) => Map<String, dynamic>.from(item))
+          .map((item) => Endereco.fromJson(Map<String, dynamic>.from(item)))
           .toList();
     } catch (e) {
       listaEnderecos = [];
     }
   }
 
-  listaEnderecos.add(endereco.toJson());
+  // Remove duplicados caso o mesmo endereço tenha sido adicionado previamente sem ID
+  listaEnderecos.removeWhere((item) =>
+      (item.id != null && item.id == endereco.id) ||
+      (item.logradouro == endereco.logradouro &&
+          item.numero == endereco.numero &&
+          item.cep == endereco.cep));
 
-  await prefs.setString('enderecos', jsonEncode(listaEnderecos));
+  listaEnderecos.add(endereco);
+
+  final listJson = listaEnderecos.map((e) => e.toJson()).toList();
+  await prefs.setString('enderecos', jsonEncode(listJson));
 }
 
 Future<List<Endereco>> listarSharedPreferences() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
 
-  //pega os enderecos do sharedPreference
   String? enderecosJson = prefs.getString('enderecos');
-
-  //lista para os enderecos
   List<Endereco> listaEnderecos = [];
 
-  //Transforma os enderecos de json para uma lista
   if (enderecosJson != null && enderecosJson.isNotEmpty) {
     try {
       List<dynamic> lista = jsonDecode(enderecosJson);
-
       listaEnderecos = lista
           .map((item) => Endereco.fromJson(Map<String, dynamic>.from(item)))
           .toList();
@@ -59,28 +57,27 @@ Future<List<Endereco>> listarSharedPreferences() async {
 
 Future<String> cadastrarEndereco(Endereco endereco) async {
   try {
-    //Se for possivel converter o endereco em cordenadas é um endereço valido
     final conversao = Cordenadas();
     LatLng? cordenadas = await conversao.converteEmCordenadas(endereco);
 
     if (cordenadas != null) {
-      
       endereco.latitude = cordenadas.latitude;
       endereco.longitude = cordenadas.longitude;
 
-      // Salva no SharedPreferences
-      await salvarSharedPreferences(endereco);
-
-      return 'Endereço salvo com sucesso!';
-      /*
-
       final resposta = await Api().post('/enderecos', endereco.toJson());
-        if (resposta.statusCode == 201) {
-        endereco = Endereco.fromJson(jsonDecode(resposta.body)['endereco']);
+      
+      if (resposta.statusCode == 201 || resposta.statusCode == 200) {
+        final body = jsonDecode(resposta.body);
+        // Recebe a versão salva no MySQL já com o ID retornado pelo Laravel
+        Endereco enderecoSalvo = Endereco.fromJson(body['dados']);
+
+        // Salva no SharedPreferences
+        await salvarSharedPreferences(enderecoSalvo);
+
+        return 'Endereço salvo com sucesso!';
       } else {
         return "Erro ao salvar endereço.";
-      }*/
-      
+      }
     } else {
       return 'Endereço inválido.';
     }

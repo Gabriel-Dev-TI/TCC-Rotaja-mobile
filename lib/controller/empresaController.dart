@@ -13,6 +13,7 @@ Future<String> cadastraEmpresa(Empresa empresa) async {
       final prefs = await SharedPreferences.getInstance();
 
       await prefs.setString('token', dados['token']);
+      await prefs.setString('usuario', dados['usuario']);
       await prefs.setString('cargo', 'empresa');
 
       return 'Empresa cadastrada com sucesso!';

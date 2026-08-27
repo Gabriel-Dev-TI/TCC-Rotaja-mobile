@@ -5,6 +5,7 @@ import 'package:rotaja/model/entregador.dart';
 import 'package:rotaja/model/usuario.dart';
 import 'package:rotaja/views/animacoes/animacao_carregandoBtn.dart';
 import 'package:rotaja/views/widgets/snackbar.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class EntregadorCadastro extends StatefulWidget {
   const EntregadorCadastro({super.key});
@@ -21,6 +22,11 @@ class _EntregadorCadastroState extends State<EntregadorCadastro> {
   final _senhaController = TextEditingController();
   final _cpfController = TextEditingController();
   final _telefoneController = TextEditingController();
+
+  
+  // Mascaras do mask_text_input_formatter para formatar os inputs
+  final maskCpf   = MaskTextInputFormatter(mask: "###.###.###-##", filter: {"#": RegExp(r'[0-9]')});
+  final maskTel = MaskTextInputFormatter(mask: "(##) #####-####",filter: {"#": RegExp(r'[0-9]')},);
 
   TipoVeiculo? _tipoVeiculoSelecionado;
   bool senhaObscure = true;
@@ -192,8 +198,8 @@ class _EntregadorCadastroState extends State<EntregadorCadastro> {
                             if (value == null || value.isEmpty) {
                               return 'Informe a sua senha';
                             }
-                            if (value.length < 6) {
-                              return 'A senha deve possuir no mínimo 6 dígitos';
+                            if (value.length < 8) {
+                              return 'A senha deve possuir no mínimo 8 dígitos';
                             }
                             return null;
                           },
@@ -202,6 +208,7 @@ class _EntregadorCadastroState extends State<EntregadorCadastro> {
                         TextFormField(
                           controller: _telefoneController,
                           keyboardType: TextInputType.number,
+                          inputFormatters: [maskTel],
                           decoration: InputDecoration(
                             label: Text('Telefone'),
                             prefixIcon: Icon(Icons.phone),
@@ -210,18 +217,15 @@ class _EntregadorCadastroState extends State<EntregadorCadastro> {
                             if (value == null || value.trim().isEmpty) {
                               return 'Informe o telefone';
                             }
-                            final RegExp regex = RegExp(
-                              r'^\+?(?:\d{2})?\s?\(?\d{2}\)?\s?9\d{4}-?\d{4}$',
-                            );
-                            if (!regex.hasMatch(value)) {
-                              return 'Telefone inválido';
+                            if (value.length < 14) {
+                              return 'Telefone incompleto';
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: 12),
-
                         TextFormField(
+                          inputFormatters: [maskCpf],
                           controller: _cpfController,
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
@@ -232,7 +236,7 @@ class _EntregadorCadastroState extends State<EntregadorCadastro> {
                             if (value == null || value.trim().isEmpty) {
                               return 'Informe o seu CPF';
                             }
-                            if (value.trim().length != 11) {
+                            if (value.trim().length != 14) {
                               return 'Digite um CPF válido';
                             }
                             return null;

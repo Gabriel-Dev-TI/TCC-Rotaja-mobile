@@ -53,7 +53,7 @@ class _PainelState extends State<Painel> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 15),
-            Text('Olá, Empresa! 👋', style: tema.textTheme.titleLarge),
+            Text('Olá, Empresa!', style: tema.textTheme.titleLarge),
             const SizedBox(height: 8),
             Text(
               'O que você precisa entregar hoje?',

@@ -23,19 +23,11 @@ class Empresa extends Usuario {
       nome: json['nome'] ?? '',
       email: json['email'] ?? '',
       senha: json['senha'] ?? '',
-      cargo: Cargo.values.firstWhere(
-        (e) => e.name == json['cargo'],
-        orElse: () => Cargo.empresa,
-      ),
-      criadoEm: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'].toString())
-          : null,
+      cargo: Cargo.values.firstWhere((e) => e.name == json['cargo'],orElse: () => Cargo.empresa,),
+      criadoEm: json['created_at'] != null? DateTime.tryParse(json['created_at'].toString()): null,
       cnpj: json['cnpj'] ?? '',
       telefone: json['telefone'] ?? '',
-      endereco:
-          json['endereco'] != null && json['endereco'] is Map<String, dynamic>
-          ? Endereco.fromJson(json['endereco'])
-          : null,
+      endereco:json['endereco'] != null && json['endereco'] is Map<String, dynamic> ? Endereco.fromJson(json['endereco']) : null,
     );
   }
 

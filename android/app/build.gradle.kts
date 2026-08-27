@@ -32,6 +32,12 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+    applicationVariants.all {
+        outputs.forEach { output ->
+            val outputFileName = "RotaJa.apk"
+            (output as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName = outputFileName
+        }
+    }
 }
 
 kotlin {

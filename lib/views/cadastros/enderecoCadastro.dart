@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:rotaja/controller/enderecoController.dart';
 import 'package:rotaja/model/endereco.dart';
 import 'package:rotaja/repository/cep.dart';
+import 'package:rotaja/repository/cordenadas.dart';
 import 'package:rotaja/views/animacoes/animacao_carregandoBtn.dart';
 import 'package:rotaja/views/widgets/snackbar.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:latlong2/latlong.dart';
 
 class EnderecoCadastro extends StatefulWidget {
-  const EnderecoCadastro({super.key});
+  final bool salvarNaApi;
+
+  EnderecoCadastro({super.key,this.salvarNaApi = true,});
 
   @override
   State<EnderecoCadastro> createState() => _EnderecoCadastroState();
@@ -23,6 +27,9 @@ class _EnderecoCadastroState extends State<EnderecoCadastro> {
   final _cidadeController = TextEditingController();
   final _estadoController = TextEditingController();
   final _complementoController = TextEditingController();
+
+
+  final maskCep   = MaskTextInputFormatter(mask: "#####-###", filter: {"#": RegExp(r'[0-9]')});
 
   bool carregandoCep = false;
   bool isLoading = false;
@@ -79,14 +86,36 @@ class _EnderecoCadastroState extends State<EnderecoCadastro> {
     complemento: _complementoController.text.trim(),
   );
 
+  /*
+  Se salvarNaApi for false, é endereço proprio da empresa
+  e sera cadastrado em uma requisicao junto com a empresa
+  e aqui apenas verfica se o endereço é valido pegando as cordenadas
+  */
+  
+  if (!widget.salvarNaApi) {
+    final conversao = Cordenadas();
+    LatLng? cordenadas = await conversao.converteEmCordenadas(endereco);
+    
+    if (cordenadas != null) {
+      endereco.latitude = cordenadas.latitude;
+      endereco.longitude = cordenadas.longitude;
+      
+      // Fecha a tela e devolve o endereço apenas com os dados locais
+      if (mounted) Navigator.pop(context, endereco);
+      mostraSnackBar.show(context, 'Endereço salvo com sucesso!', false);
+    }
+    }
+    else{
+
   String resposta = await cadastrarEndereco(endereco);
   bool cadastroFalhou = resposta != 'Endereço salvo com sucesso!';
 
   if (!cadastroFalhou && mounted) {
     Navigator.pop(context, endereco);
   }
-
+  
     mostraSnackBar.show(context, resposta, cadastroFalhou);
+    }
     setState(() => isLoading = false);
   
 }
@@ -109,8 +138,7 @@ class _EnderecoCadastroState extends State<EnderecoCadastro> {
                     child: TextFormField(
                       controller: _cepController,
                       keyboardType: TextInputType.number,
-                      maxLength: 9,
-                      maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                      inputFormatters: [maskCep],
                       decoration: InputDecoration(
                         counterText: '',
                         labelText: 'CEP',
@@ -132,6 +160,11 @@ class _EnderecoCadastroState extends State<EnderecoCadastro> {
                           return 'Informe o CEP';
                         }
                         return null;
+                      },
+                      onChanged: (value) {
+                        if (value.length == 9) {
+                          buscarCep();
+                        }
                       },
                     ),
                   ),

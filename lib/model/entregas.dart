@@ -15,8 +15,10 @@ class Entregas {
   double? peso;
   double? altura;
   double? largura;
+  double? comprimento;
   double? distancia;
   int? tempoEstimado;
+  String? nomeProduto;
   String? observacoes;
   String? descricao;
   String? data;
@@ -37,6 +39,8 @@ class Entregas {
     this.descricao,
     this.distancia,
     this.tempoEstimado,
+    this.nomeProduto,
+    this.comprimento,
     this.data,
     this.hora
   });
@@ -44,6 +48,8 @@ class Entregas {
   factory Entregas.fromJson(Map<String, dynamic> json) {
     return Entregas(
       id: json['id'],
+      nomeProduto: json['nome_produto'],
+      comprimento: json['comprimento'],
       empresa: json['empresa'] != null ? Empresa.fromJson(json['empresa']) : null,
       entregador: json['entregador'] != null ? Entregador.fromJson(json['entregador']) : null,
       origem: json['endereco_origem'] != null ? Endereco.fromJson(json['endereco_origem']): null,
@@ -54,7 +60,7 @@ class Entregas {
       altura: double.tryParse(json['altura']),
       largura: double.tryParse(json['largura']),
       distancia: double.tryParse(json['distancia']),
-      tempoEstimado: json['tempoEstimado'],
+      tempoEstimado: json['tempo_estimado_minutos'],
       observacoes: json['observacoes'],
       descricao: json['descricao'],
       data:json['data'],
@@ -65,6 +71,7 @@ class Entregas {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'nome_produto':nomeProduto,
       'empresa': empresa?.toJson(),
       'entregador': entregador?.toJson(),
       'origem': origem?.toJson(),
@@ -77,7 +84,7 @@ class Entregas {
       'observacoes': observacoes,
       'descricao': descricao,
       'distancia':distancia,
-      'tempoEstimado':tempoEstimado,
+      'tempo_estimado_minutos':tempoEstimado,
     };
   }
 }

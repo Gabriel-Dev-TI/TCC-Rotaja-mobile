@@ -133,7 +133,7 @@ class _MapaState extends State<Mapa> {
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () =>  Navigator.pushNamedAndRemoveUntil(context,'/entregador',(route) => false,),
                       icon: const Icon(Icons.arrow_back),
                       label: const Text('Voltar'),
                     ),

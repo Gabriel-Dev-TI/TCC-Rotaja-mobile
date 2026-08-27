@@ -54,6 +54,7 @@ class _SplashState extends State<Splash> {
         //Salva o endereco da empresa
         salvarSharedPreferences(
           Endereco(
+            tipoEndereco: dados['dados']['endereco']['tipo'],
             logradouro: dados['dados']['endereco']['logradouro'],
             numero: dados['dados']['endereco']['numero'],
             bairro: dados['dados']['endereco']['bairro'],

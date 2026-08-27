@@ -14,16 +14,18 @@ Future<String> fazLogin ({required TextEditingController email, required TextEdi
       });
 
       if (resposta.statusCode == 200 && resposta.body.isNotEmpty) {
-        final dados = jsonDecode(resposta.body);
-        final prefs = await SharedPreferences.getInstance();
-
-        await prefs.setString('token', dados['token']);
-        await prefs.setString('cargo', dados['usuario']['cargo']);
+         final dados = jsonDecode(resposta.body);
 
         // Valida se o cargo retornado bate com a tela atual
         if (dados['usuario']['cargo'] != cargo) {
           return "Sua conta não tem permissão como $cargo";
-        } 
+        }
+
+        final prefs = await SharedPreferences.getInstance();
+
+        await prefs.setString('token', dados['token']);
+        await prefs.setString('cargo', dados['usuario']['cargo']);
+        await prefs.setString('usuario', dados['usuario']);
 
         return "Login realizado com sucesso";
           

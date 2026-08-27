@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:rotaja/model/entregas.dart';
 import 'package:rotaja/repository/api.dart';
 import 'package:rotaja/views/animacoes/animacao_carregando.dart';
+import 'package:rotaja/views/widgets/card_button.dart';
 
 class Painel extends StatefulWidget {
   const Painel({super.key});
@@ -54,7 +55,7 @@ class _PainelState extends State<Painel> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Olá, Entregador! 👋',
+              'Olá, Entregador!',
               style: tema.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
@@ -63,6 +64,13 @@ class _PainelState extends State<Painel> {
               style: tema.bodyLarge?.copyWith(color: Colors.grey[600]),
             ),
             const SizedBox(height: 24),
+            CardButton(
+              funcao: (){},
+              titulo: 'Ganhos',
+              subtitulo: 'R\$ 100,00',
+              icone: Icon(Icons.attach_money),
+            ),
+            const SizedBox(height: 32),
 
             
             Row(

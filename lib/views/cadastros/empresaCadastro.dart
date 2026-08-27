@@ -7,6 +7,7 @@ import 'package:rotaja/model/usuario.dart';
 import 'package:rotaja/views/animacoes/animacao_carregandoBtn.dart';
 import 'package:rotaja/views/widgets/dropdownitems.dart';
 import 'package:rotaja/views/widgets/snackbar.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class EmpresaCadastro extends StatefulWidget {
   const EmpresaCadastro({super.key});
@@ -23,6 +24,10 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
   final _senhaController = TextEditingController();
   final _cnpjController = TextEditingController();
   final _telefoneController = TextEditingController();
+
+  // Mascaras do mask_text_input_formatter para formatar os inputs
+  final maskCnpj  = MaskTextInputFormatter(mask: "##.###.###/####-##", filter: {"#": RegExp(r'[0-9]')});
+  final maskTel = MaskTextInputFormatter(mask: "(##) #####-####",filter: {"#": RegExp(r'[0-9]')},);
 
   Endereco? _enderecoController;
   bool senhaObscure = true;
@@ -179,8 +184,8 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
                             if (value == null || value.isEmpty) {
                               return 'Informe a sua senha';
                             }
-                            if (value.length < 6) {
-                              return 'A senha deve possuir no mínimo 6 dígitos';
+                            if (value.length < 8) {
+                              return 'A senha deve possuir no mínimo 8 dígitos';
                             }
                             return null;
                           },
@@ -189,6 +194,7 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
                         TextFormField(
                           controller: _telefoneController,
                           keyboardType: TextInputType.number,
+                          inputFormatters: [maskTel],
                           decoration: InputDecoration(
                             label: Text('Telefone'),
                             prefixIcon: Icon(Icons.phone),
@@ -197,11 +203,8 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
                             if (value == null || value.trim().isEmpty) {
                               return 'Informe o telefone';
                             }
-                            final RegExp regex = RegExp(
-                              r'^\+?(?:\d{2})?\s?\(?\d{2}\)?\s?9\d{4}-?\d{4}$',
-                            );
-                            if (!regex.hasMatch(value)) {
-                              return 'Telefone inválido';
+                            if (value.length < 14) {
+                              return 'Telefone incompleto';
                             }
                             return null;
                           },
@@ -211,6 +214,7 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
                         TextFormField(
                           controller: _cnpjController,
                           keyboardType: TextInputType.number,
+                          inputFormatters: [maskCnpj],
                           decoration: InputDecoration(
                             label: Text('CNPJ'),
                             prefixIcon: Icon(Icons.subtitles_outlined),
@@ -219,7 +223,7 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
                             if (value == null || value.trim().isEmpty) {
                               return 'Informe o seu CNPJ';
                             }
-                            if (value.trim().length != 14) {
+                            if (value.trim().length != 18) {
                               return 'Digite um CNPJ válido';
                             }
                             return null;
@@ -231,10 +235,9 @@ class _EmpresaCadastroState extends State<EmpresaCadastro> {
                           enderecoSelecionado: _enderecoController,
                           label: 'da Empresa',
                           icon: const Icon(Icons.location_on_outlined),
+                          salvarNaApi: false,
                           onChanged: (novoEndereco) {
-                            setState(() {
-                              _enderecoController = novoEndereco;
-                            });
+                            setState(() =>_enderecoController = novoEndereco);
                           },
                         ),
                       ],

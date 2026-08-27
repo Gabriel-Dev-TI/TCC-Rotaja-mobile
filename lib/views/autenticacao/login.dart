@@ -78,7 +78,7 @@ class _LoginState extends State<Login> {
                       color: Colors.white,
                       shape: BoxShape.circle,
                       boxShadow: [
-                        BoxShadow(color: primaryColor, blurRadius: 10),
+                        BoxShadow(color: primaryColor, blurRadius: 5),
                       ],
                     ),
                     child: Image.asset(
@@ -144,8 +144,8 @@ class _LoginState extends State<Login> {
                       if (value == null || value.isEmpty) {
                         return 'Informe a sua senha';
                       }
-                      if (value.length < 6) {
-                        return 'A senha deve possuir no mínimo 6 dígitos';
+                      if (value.length < 8) {
+                        return 'A senha deve possuir no mínimo 8 dígitos';
                       }
                       return null;
                     },

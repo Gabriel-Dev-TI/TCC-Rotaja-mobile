@@ -1,5 +1,9 @@
+enum TipoEndereco { proprio, entrega}
+
 class Endereco {
   int? id;
+  int? empresaId;
+  TipoEndereco? tipoEndereco;
   String logradouro;
   String numero;
   String bairro;
@@ -12,6 +16,8 @@ class Endereco {
 
   Endereco({
     this.id,
+    this.empresaId,
+    this.tipoEndereco,
     required this.logradouro,
     required this.numero,
     required this.bairro,
@@ -26,6 +32,8 @@ class Endereco {
   factory Endereco.fromJson(Map<String, dynamic> json) {
     return Endereco(
       id:json['id'],
+      empresaId: json['empresa_id'],
+      tipoEndereco: TipoEndereco.values.firstWhere((e) => e.name == json['tipo'],orElse: () => TipoEndereco.entrega,),
       logradouro: json['logradouro'] ?? '',
       numero: json['numero'] ?? '',
       bairro: json['bairro'] ?? '',
@@ -39,16 +47,36 @@ class Endereco {
   }
 
   Map<String, dynamic> toJson() {
-  return {
-    'logradouro': logradouro,
-    'numero': numero,
-    'bairro': bairro,
-    'cidade': cidade,
-    'estado': estado,
-    'cep': cep,
-    'complemento': complemento,
-    'latitude' : latitude,
-    'longitude' : longitude,
-  };
-}   
+    return {
+      'empresa_id': empresaId,
+      'tipo': tipoEndereco?.name,
+      'logradouro': logradouro,
+      'numero': numero,
+      'bairro': bairro,
+      'cidade': cidade,
+      'estado': estado,
+      'cep': cep,
+      'complemento': complemento,
+      'latitude' : latitude,
+      'longitude' : longitude,
+    };
+  } 
+
+  // Essencial para o Dropdown saber qual item é igual a qual
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Endereco &&
+          runtimeType == other.runtimeType &&
+          (id != null && other.id != null
+              ? id == other.id
+              : logradouro == other.logradouro &&
+                  numero == other.numero &&
+                  cep == other.cep);
+
+  @override
+  int get hashCode => id != null 
+      ? id.hashCode 
+      : Object.hash(logradouro, numero, cep);
+  
 }
