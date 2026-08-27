@@ -32,9 +32,9 @@ class Entregas {
     this.destino,
     this.status,
     this.preco,
-    required this.peso,
-    required this.largura,
-    required this.altura,
+    this.peso,
+    this.largura,
+    this.altura,
     this.observacoes,
     this.descricao,
     this.distancia,
@@ -42,47 +42,55 @@ class Entregas {
     this.nomeProduto,
     this.comprimento,
     this.data,
-    this.hora
+    this.hora,
   });
 
   factory Entregas.fromJson(Map<String, dynamic> json) {
+    // Helper para converter inteiros, doubles ou Strings numéricas sem quebrar
+    double? paraDouble(dynamic valor) {
+      if (valor == null) return null;
+      if (valor is double) return valor;
+      if (valor is int) return valor.toDouble();
+      return double.tryParse(valor.toString());
+    }
+
     return Entregas(
       id: json['id'],
       nomeProduto: json['nome_produto'],
-      comprimento: json['comprimento'],
+      comprimento: paraDouble(json['comprimento']),
+      preco: paraDouble(json['preco']),
+      peso: paraDouble(json['peso']),
+      altura: paraDouble(json['altura']),
+      largura: paraDouble(json['largura']),
+      distancia: paraDouble(json['distancia']),
+      tempoEstimado: json['tempo_estimado_minutos'],
       empresa: json['empresa'] != null ? Empresa.fromJson(json['empresa']) : null,
       entregador: json['entregador'] != null ? Entregador.fromJson(json['entregador']) : null,
-      origem: json['endereco_origem'] != null ? Endereco.fromJson(json['endereco_origem']): null,
-      destino: json['endereco_destino'] != null ? Endereco.fromJson(json['endereco_destino']): null, 
-      status: Status.values.firstWhere((e) => e.name == json['status'],orElse: () => Status.pendente,),
-      preco: double.tryParse(json['preco']),
-      peso: double.tryParse(json['peso']),
-      altura: double.tryParse(json['altura']),
-      largura: double.tryParse(json['largura']),
-      distancia: double.tryParse(json['distancia']),
-      tempoEstimado: json['tempo_estimado_minutos'],
+      origem: json['endereco_origem'] != null ? Endereco.fromJson(json['endereco_origem']) : null,
+      destino: json['endereco_destino'] != null ? Endereco.fromJson(json['endereco_destino']) : null,
+      status: Status.values.firstWhere(
+        (e) => e.name == json['status'],
+        orElse: () => Status.pendente,
+      ),
       observacoes: json['observacoes'],
       descricao: json['descricao'],
-      data:json['data'],
-      hora:json['hora']
+      data: json['data'],
+      hora: json['hora'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'nome_produto':nomeProduto,
-      'empresa': empresa?.toJson(),
-      'entregador': entregador?.toJson(),
+      'nome_produto': nomeProduto,
+      'descricao': descricao,
+      'largura': largura,
+      'altura': altura,
+      'peso': peso,
+      'comprimento': comprimento,
       'origem': origem!.id,
       'destino': destino!.id,
-      'status': status?.name,
-      'comprimento': comprimento,
-      'peso': peso,
-      'altura': altura,
-      'largura': largura,
       'observacoes': observacoes,
-      'descricao': descricao,
     };
   }
 }

@@ -22,6 +22,8 @@ class _MapaState extends State<Mapa> {
   bool inicializado = false;
   String? mensagemErro;
 
+
+  // Roda depois do inistate
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -133,7 +135,7 @@ class _MapaState extends State<Mapa> {
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
-                      onPressed: () =>  Navigator.pushNamedAndRemoveUntil(context,'/entregador',(route) => false,),
+                      onPressed: () =>  Navigator.pop(context),
                       icon: const Icon(Icons.arrow_back),
                       label: const Text('Voltar'),
                     ),
@@ -186,7 +188,7 @@ class _MapaState extends State<Mapa> {
                           width: 40,
                           height: 40,
                           child: const Icon(
-                            Icons.flag,
+                            Icons.location_on,
                             color: Colors.red,
                             size: 35,
                           ),
@@ -203,7 +205,7 @@ class _MapaState extends State<Mapa> {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Concluir Visualização'),
+                    child: const Text('Finalizar Entrega'),
                   ),
                 ),
               ),

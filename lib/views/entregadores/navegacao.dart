@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:rotaja/views/entregadores/mapa.dart';
 import 'package:rotaja/views/entregadores/painel.dart';
 import 'package:rotaja/views/produtos/historico.dart';
 import 'package:rotaja/views/usuario/configuracoes.dart';
@@ -12,10 +11,9 @@ class NavegacaoEntregador extends StatefulWidget {
 }
 
 class _NavegacaoEntregadorState extends State<NavegacaoEntregador> {
-  int abaAtual = 1;
+  int abaAtual = 0;
 
   final List<Widget> telas = [
-    Mapa(),
     Painel(),
     Historico(),
     Configuracoes(isEntregador: true),
@@ -35,7 +33,6 @@ class _NavegacaoEntregadorState extends State<NavegacaoEntregador> {
         type: BottomNavigationBarType.fixed,
 
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Mapa'),
           BottomNavigationBarItem(
             icon: Icon(Icons.motorcycle),
             label: 'Entregas',

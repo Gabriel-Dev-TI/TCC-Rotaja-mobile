@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:rotaja/views/animacoes/animacao_carregando.dart';
 import 'package:rotaja/views/animacoes/animacao_erro.dart';
@@ -22,198 +21,275 @@ class _DadosState extends State<Dados> {
   }
 
   Future<Map<String, dynamic>?> carregaDados() async {
-    final prefs = await SharedPreferences.getInstance();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final usuarioJson = prefs.getString('usuario');
 
-    final usuarioJson = prefs.getString('usuario');
+      if (usuarioJson == null || usuarioJson.isEmpty) {
+        return null;
+      }
+      final dados = jsonDecode(usuarioJson);
 
-    if (usuarioJson == null || usuarioJson.isEmpty) {
-      return null;
-    }
-    final dados = jsonDecode(usuarioJson);
+      final Map<String, dynamic> resultado = {
+        'cargo': dados['cargo'],
+        'nome': dados['nome'],
+        'email': dados['email'],
+        'telefone': dados['telefone'],
+        'criado_em': dados['data_registro'],
+        'cpf': null,
+        'cnpj': null,
+        'tipo_veiculo': null,
+        'endereco': null,
+      };
 
-    final Map<String, dynamic> resultado = {
-      'cargo': dados['cargo'],
-      'nome': dados['nome'],
-      'email': dados['email'],
-      'telefone': dados['telefone'],
-      'criado_em': dados['data_registro'],
-      'cpf': null,
-      'cnpj': null,
-      'tipo_veiculo': null,
-      'endereco': null,
-    };
+      if (dados['cargo'] == 'empresa') {
+        final empresa = dados['empresa'];
+        if (empresa != null) {
+          resultado['cnpj'] = empresa['cnpj'];
+          final List<dynamic>? enderecos = empresa['enderecos'];
 
-    if (dados['cargo'] == 'empresa') {
-      final empresa = dados['empresa'];
+          if (enderecos != null && enderecos.isNotEmpty) {
+            final enderecoProprio = enderecos.firstWhere(
+              (e) => e['tipo'] == 'proprio',
+              orElse: () => null,
+            );
 
-      if (empresa != null) {
-        resultado['cnpj'] = empresa['cnpj'];
-
-        final List<dynamic>? enderecos = empresa['enderecos'];
-
-        if (enderecos != null && enderecos.isNotEmpty) {
-          // Busca o primeiro endereço da lista onde o tipo seja "proprio"
-          final enderecoProprio = enderecos.firstWhere(
-            (e) => e['tipo'] == 'proprio',
-            orElse: () => null,
-          );
-
-          if (enderecoProprio != null) {
-            resultado['endereco'] =
-                '${enderecoProprio['logradouro']}, ${enderecoProprio['numero']}';
+            if (enderecoProprio != null) {
+              resultado['endereco'] =
+                  '${enderecoProprio['logradouro']}, ${enderecoProprio['numero']}';
+            }
           }
         }
       }
-    }
 
-    if (dados['cargo'] == 'entregador') {
-      final entregador = dados['entregador'];
-
-      if (entregador != null) {
-        resultado['cpf'] = entregador['cpf'];
-        resultado['tipo_veiculo'] = entregador['tipo_veiculo'];
+      if (dados['cargo'] == 'entregador') {
+        final entregador = dados['entregador'];
+        if (entregador != null) {
+          resultado['cpf'] = entregador['cpf'];
+          resultado['tipo_veiculo'] = entregador['tipo_veiculo'];
+        }
       }
-    }
 
-    return resultado;
+      return resultado;
+    } catch (e) {
+      debugPrint('Erro ao carregar dados do usuário: $e');
+      return null;
+    }
   }
 
-  Widget linha({
+  Widget _buildItemInfo({
+    required IconData icone,
     required String titulo,
     required String valor,
+    bool isUltimo = false,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 11),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            titulo,
-            style: TextStyle(
-              fontSize: 12,
-              color: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.color
-                  ?.withValues(alpha: 0.60),
-            ),
+    final cores = Theme.of(context).colorScheme;
+    final tema = Theme.of(context).textTheme;
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: cores.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icone,
+                  color: cores.primary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      titulo,
+                      style: tema.bodySmall?.copyWith(
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      valor.isEmpty ? 'Não informado' : valor,
+                      style: tema.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 3),
-          Text(
-            valor.isEmpty ? 'Não informado' : valor,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodyLarge
+        ),
+        if (!isUltimo)
+          Divider(
+            height: 1,
+            color: Colors.grey.withOpacity(0.15),
           ),
-            const SizedBox(height: 11),
-            Divider(
-              height: 1,
-              color: Theme.of(context)
-                  .dividerColor
-                  .withValues(alpha: 0.35),
-            ),
-          
-        ],
-      ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final cores = Theme.of(context).colorScheme;
+    final tema = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           'Dados da Conta',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
+        elevation: 0,
       ),
-
       body: FutureBuilder<Map<String, dynamic>?>(
         future: _dadosFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState ==
-              ConnectionState.waiting) {
-            return AnimacaoCarregando();
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const AnimacaoCarregando();
           }
 
-          if (snapshot.hasError ||
-              !snapshot.hasData ||
-              snapshot.data == null) {
-            return AnimacaoErro();
+          if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+            return const AnimacaoErro();
           }
 
           final dados = snapshot.data!;
-          final bool empresa = dados['cargo'] == 'empresa';
+          final bool isEmpresa = dados['cargo'] == 'empresa';
+          final String nome = dados['nome'] ?? 'Usuário';
 
           return SafeArea(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(20.0),
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
                   children: [
-                    // NOME
-                    Text(
-                      dados['nome'] ?? '',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleLarge
-                    ),
-
-                    const SizedBox(height: 2),
-
-                    Text(
-                      empresa ? 'Empresa' : 'Entregador',
-                      style: Theme.of(context).textTheme.titleSmall!.copyWith(color: Theme.of(context).colorScheme.primary),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    linha(
-                      titulo: 'E-mail',
-                      valor: dados['email'] ?? '',
-                    ),
-
-                    linha(
-                      titulo: 'Telefone',
-                      valor: dados['telefone'] ?? '',
-                    ),
-
-                    linha(
-                      titulo: empresa ? 'CNPJ' : 'CPF',
-                      valor: empresa
-                          ? dados['cnpj'] ?? ''
-                          : dados['cpf'] ?? '',
-                    ),
-
-                    linha(
-                      titulo: 'Senha',
-                      valor: '••••••••',
-                    ),
-
-                    linha(
-                      titulo: 'Data de registro',
-                      valor: dados['criado_em'] ?? '',
-                    ),
-
-                    if (empresa)
-                      linha(
-                        titulo: 'Endereço',
-                        valor: dados['endereco'] ?? '',
+                    Center(
+                      child: Column(
+                        children: [
+                          CircleAvatar(
+                            radius: 36,
+                            backgroundColor: cores.primary.withOpacity(0.15),
+                            child: Text(
+                              nome.isNotEmpty ? nome[0].toUpperCase() : 'U',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: cores.primary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            nome,
+                            textAlign: TextAlign.center,
+                            style: tema.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: cores.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              isEmpresa ? 'Empresa' : 'Entregador',
+                              style: TextStyle(
+                                color: cores.primary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    if (!empresa)
-                      linha(
-                        titulo: 'Tipo de veículo',
-                        valor:
-                            dados['tipo_veiculo'] ?? '',
-                      ),
+                    ),
+                    const SizedBox(height: 28),
 
-                   ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.grey.withOpacity(0.15),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.03),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          _buildItemInfo(
+                            icone: Icons.email_outlined,
+                            titulo: 'E-mail',
+                            valor: dados['email'] ?? '',
+                          ),
+                          _buildItemInfo(
+                            icone: Icons.phone_outlined,
+                            titulo: 'Telefone',
+                            valor: dados['telefone'] ?? '',
+                          ),
+                          _buildItemInfo(
+                            icone: isEmpresa
+                                ? Icons.business_outlined
+                                : Icons.badge_outlined,
+                            titulo: isEmpresa ? 'CNPJ' : 'CPF',
+                            valor: isEmpresa
+                                ? (dados['cnpj'] ?? '')
+                                : (dados['cpf'] ?? ''),
+                          ),
+                          if (isEmpresa)
+                            _buildItemInfo(
+                              icone: Icons.location_on_outlined,
+                              titulo: 'Endereço',
+                              valor: dados['endereco'] ?? '',
+                            ),
+                          if (!isEmpresa)
+                            _buildItemInfo(
+                              icone: Icons.two_wheeler_outlined,
+                              titulo: 'Tipo de veículo',
+                              valor: dados['tipo_veiculo'] ?? '',
+                            ),
+                          _buildItemInfo(
+                            icone: Icons.lock_outline,
+                            titulo: 'Senha',
+                            valor: '••••••••',
+                          ),
+                          _buildItemInfo(
+                            icone: Icons.calendar_today_outlined,
+                            titulo: 'Data de registro',
+                            valor: dados['criado_em'] ?? '',
+                            isUltimo: true,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

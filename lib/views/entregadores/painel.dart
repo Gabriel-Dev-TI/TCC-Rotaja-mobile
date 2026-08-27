@@ -24,17 +24,14 @@ class _PainelState extends State<Painel> {
   Future<List<Entregas>?> _getEntregasDisponiveis() async {
     try {
       final client = Api();
-      final resposta = await client.get('/entregas'); 
+      final resposta = await client.get('/entregas');
 
       if (resposta.statusCode == 200 && resposta.body.isNotEmpty) {
         final jsonBody = jsonDecode(resposta.body);
-
         final List lista = jsonBody['dados'] ?? [];
 
-        return lista
-            .map((item) => Entregas.fromJson(item))
-            .toList();
-        }
+        return lista.map((item) => Entregas.fromJson(item)).toList();
+      }
       return null;
     } catch (e) {
       debugPrint('Erro ao buscar entregas: $e');
@@ -65,14 +62,12 @@ class _PainelState extends State<Painel> {
             ),
             const SizedBox(height: 24),
             CardButton(
-              funcao: (){},
+              funcao: () {},
               titulo: 'Ganhos',
-              subtitulo: 'R\$ 100,00',
-              icone: Icon(Icons.attach_money),
+              subtitulo: 'R\$ 0,00',
+              icone: const Icon(Icons.attach_money),
             ),
             const SizedBox(height: 32),
-
-            
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -88,27 +83,32 @@ class _PainelState extends State<Painel> {
                   },
                   child: Text(
                     'Atualizar',
-                    style: TextStyle(color: cores.primary, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      color: cores.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-
             FutureBuilder<List<Entregas>?>(
               future: _entregasDisponiveisFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return AnimacaoCarregando();
+                  return const AnimacaoCarregando();
                 }
 
-                if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+                if (snapshot.hasError ||
+                    !snapshot.hasData ||
+                    snapshot.data!.isEmpty) {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 32.0),
                       child: Column(
                         children: [
-                          Icon(Icons.inbox_rounded, size: 50, color: Colors.grey[400]),
+                          Icon(Icons.inbox_rounded,
+                              size: 50, color: Colors.grey[400]),
                           const SizedBox(height: 8),
                           Text(
                             'Nenhuma entrega no momento.',
@@ -124,9 +124,9 @@ class _PainelState extends State<Painel> {
 
                 return ListView.separated(
                   shrinkWrap: true,
-                  physics: const BouncingScrollPhysics(),
                   itemCount: listaEntregas.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final entrega = listaEntregas[index];
                     return _buildEntregaCard(tema, cores, entrega);
@@ -140,85 +140,188 @@ class _PainelState extends State<Painel> {
     );
   }
 
-  Widget _buildEntregaCard(TextTheme tema, ColorScheme cores, Entregas entrega) {
-    
-    return InkWell(
-      onTap: () {
-        Navigator.pushNamed(
-          context,
-          '/mapa',
-          arguments: entrega.id, 
-        );
-      },
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black,
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child:
-         Column(
-           children: [
-             Row(
-              children: [
-                 
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildEntregaCard(
+      TextTheme tema, ColorScheme cores, Entregas entrega) {
+    final nomeEmpresa = (entrega.empresa != null &&
+            entrega.empresa!.nome != null &&
+            entrega.empresa!.nome!.isNotEmpty)
+        ? entrega.empresa!.nome!
+        : 'Entrega #${entrega.id ?? '---'}';
+
+    final valorFormatado = entrega.preco != null
+        ? 'R\$ ${entrega.preco!.toStringAsFixed(2).replaceAll('.', ',')}'
+        : 'R\$ 0,00';
+
+    final distanciaFormatada = entrega.distancia != null
+        ? '${entrega.distancia!.toStringAsFixed(1)} km'
+        : null;
+
+    final bairroOrigem = entrega.origem?.bairro ?? 'Origem não informada';
+    final bairroDestino = entrega.destino?.bairro ?? 'Destino não informado';
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          if (entrega.id != null) {
+            Navigator.pushNamed(
+              context,
+              '/mapa',
+              arguments: entrega.id,
+            );
+          }
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.withOpacity(0.15)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: cores.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            Icons.storefront_rounded,
+                            color: cores.primary,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            nomeEmpresa,
+                            style: tema.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    valorFormatado,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: cores.primary,
+                    ),
+                  ),
+                ],
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12.0),
+                child: Divider(height: 1),
+              ),
+              Row(
+                children: [
+                  Column(
                     children: [
-                      Text(
-                        entrega.empresa!.nome.isNotEmpty
-                            ? entrega.empresa!.nome
-                            : 'Entrega #${entrega.id ?? '---'}',
-                        style: tema.titleSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 16),
+                      Icon(Icons.circle, size: 10, color: cores.primary),
+                      Container(
+                        width: 2,
+                        height: 16,
+                        color: Colors.grey.shade300,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${entrega.origem!.bairro} => ${entrega.destino!.bairro}',
-                        style: tema.bodySmall?.copyWith(color: Colors.grey[600]),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      const Icon(Icons.location_on,
+                          size: 14, color: Colors.redAccent),
                     ],
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'R\$ ${entrega.preco!.toStringAsFixed(2).replaceAll('.', ',')}',
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF7B33F4),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          bairroOrigem,
+                          style: tema.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[800],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          bairroDestino,
+                          style: tema.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[800],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (distanciaFormatada != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      
+                      child: Text(
+                        distanciaFormatada,
+                        style: tema.bodySmall?.copyWith(
+                          color: Colors.grey[700],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
-                    Text(
-                      '',
-                      style: tema.bodySmall?.copyWith(color: Colors.grey[500], fontSize: 11),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: cores.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ],
+                  ),
+                  child: const Text(
+                    'Aceitar Entrega',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
                 ),
-              ],
-                     ),
-                     SizedBox(height: 10,),
-                     SizedBox(
-                      width: double.infinity,
-                      height: 40,
-                      child: ElevatedButton(onPressed: (){}, child: Text('Aceitar Entrega')))
-           ],
-         ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

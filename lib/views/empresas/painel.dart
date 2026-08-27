@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:rotaja/model/entregas.dart';
 import 'package:rotaja/repository/api.dart';
@@ -30,7 +29,6 @@ class _PainelState extends State<Painel> {
 
       if (resposta.statusCode == 200 && resposta.body.isNotEmpty) {
         final jsonBody = jsonDecode(resposta.body);
-
         final List lista = jsonBody['dados'] ?? [];
 
         return lista.map((item) => Entregas.fromJson(item)).toList();
@@ -47,6 +45,7 @@ class _PainelState extends State<Painel> {
     final tema = Theme.of(context);
 
     return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -65,7 +64,7 @@ class _PainelState extends State<Painel> {
               funcao: () => Navigator.pushNamed(context, "/entregaCadastro"),
               titulo: 'Nova Entrega',
               subtitulo: 'Solicitar um entregador',
-              icone: Icon(Icons.add_location_alt_outlined),
+              icone: const Icon(Icons.add_location_alt_outlined),
             ),
 
             const SizedBox(height: 32),
@@ -73,44 +72,59 @@ class _PainelState extends State<Painel> {
             Text('Entregas em andamento', style: tema.textTheme.titleMedium),
             const SizedBox(height: 12),
 
-            FutureBuilder(
-              future: _getEntregasAndamento(),
-              builder: ((context, snapshot) {
+            FutureBuilder<List<Entregas>?>(
+              future: _entregasAndamento,
+              builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return AnimacaoCarregando();
+                  return const AnimacaoCarregando();
                 }
 
                 if (snapshot.hasError ||
                     !snapshot.hasData ||
                     snapshot.data!.isEmpty) {
-                  return Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: tema.colorScheme.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: tema.colorScheme.outline),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'Nenhuma entrega recente',
-                        style: tema.textTheme.bodyMedium?.copyWith(
-                          fontStyle: FontStyle.italic,
-                        ),
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 32.0),
+                      child: Column(
+                        children: [
+                          Icon(Icons.inbox_rounded,
+                              size: 50, color: Colors.grey[400]),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Nenhuma entrega no momento.',
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ],
                       ),
                     ),
                   );
                 }
+
+
                 final listaEntregas = snapshot.data!;
 
                 return ListView.separated(
                   shrinkWrap: true,
-                  physics: const BouncingScrollPhysics(),
                   itemCount: listaEntregas.length,
                   separatorBuilder: (context, index) =>
                       const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final entrega = listaEntregas[index];
+
+                    final String nomeExibicao =
+                        (entrega.empresa?.nome != null && entrega.empresa!.nome!.isNotEmpty)
+                            ? entrega.empresa!.nome!
+                            : 'Entrega #${entrega.id ?? '---'}';
+
+                    final String bairroOrigem =
+                        entrega.origem?.bairro ?? 'Origem N/A';
+                    final String bairroDestino =
+                        entrega.destino?.bairro ?? 'Destino N/A';
+
+                    final String precoFormatado = entrega.preco != null
+                        ? 'R\$ ${entrega.preco!.toStringAsFixed(2).replaceAll('.', ',')}'
+                        : 'R\$ 0,00';
+
                     return InkWell(
                       onTap: () {
                         Navigator.pushNamed(
@@ -128,58 +142,54 @@ class _PainelState extends State<Painel> {
                           border: Border.all(color: Colors.grey.shade200),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black,
-                              blurRadius: 1,
-                              offset: const Offset(0, 1),
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
                             ),
                           ],
                         ),
-                        child: Column(
+                        child: Row(
                           children: [
-                            Row(
-                              children: [
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        entrega.empresa!.nome.isNotEmpty
-                                            ? entrega.empresa!.nome
-                                            : 'Entrega #${entrega.id ?? '---'}',
-                                        style: tema.textTheme.titleSmall
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${entrega.origem!.bairro}  =>  ${entrega.destino!.bairro}',
-                                        style: tema.textTheme.bodySmall
-                                            ?.copyWith(color: Colors.grey[600]),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Column(
-                                  mainAxisAlignment: .spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    converteStatus(status: entrega.status!,),
-                                    Text(
-                                      'R\$ ${entrega.preco!.toStringAsFixed(2).replaceAll('.', ',')}',
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF7B33F4),
-                                      ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    nomeExibicao,
+                                    style: tema.textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
                                     ),
-                                    
-                                  ],
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '$bairroOrigem  =>  $bairroDestino',
+                                    style: tema.textTheme.bodySmall?.copyWith(
+                                      color: Colors.grey[600],
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                if (entrega.status != null)
+                                  converteStatus(status: entrega.status!),
+                                const SizedBox(height: 4),
+                                Text(
+                                  precoFormatado,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF7B33F4),
+                                  ),
                                 ),
                               ],
                             ),
@@ -189,7 +199,7 @@ class _PainelState extends State<Painel> {
                     );
                   },
                 );
-              }),
+              },
             ),
           ],
         ),

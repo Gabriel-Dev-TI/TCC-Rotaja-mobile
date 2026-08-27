@@ -53,7 +53,7 @@ class _SplashState extends State<Splash> {
         if (listaJson != null && listaJson.isNotEmpty) {
           await prefs.setString('enderecos', jsonEncode(listaJson));
         } else {
-          await prefs.remove('enderecos'); // Limpa caso a lista venha vazia
+          await prefs.remove('enderecos'); 
         }
       }
       return true;

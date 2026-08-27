@@ -110,7 +110,7 @@ class _EnderecoCadastroState extends State<EnderecoCadastro> {
     }
 
     setState(() => isLoading = false);
-    return; // <--- O return evita que a execução caia na requisição API abaixo
+    return; // O return evita que a execução caia na requisição API abaixo
   }
 
   // Executa apenas quando cadastrar um endereço individualmente 
