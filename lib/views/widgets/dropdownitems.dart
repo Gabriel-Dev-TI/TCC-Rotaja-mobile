@@ -39,33 +39,29 @@ class _DropDownEnderecoState extends State<DropDownEndereco> {
     }
   }
 
- Future<void> abrirCadastroEndereco() async {
-  final Endereco? enderecoNovo = await showDialog<Endereco>(
-    context: context,
-    builder: (context) => EnderecoCadastro(
-      salvarNaApi: widget.salvarNaApi,
-    ),
-  );
+  Future<void> abrirCadastroEndereco() async {
+    final Endereco? enderecoNovo = await showDialog<Endereco>(
+      context: context,
+      builder: (context) => EnderecoCadastro(salvarNaApi: widget.salvarNaApi),
+    );
 
-  if (enderecoNovo != null) {
-    if (!widget.salvarNaApi) {
-      // No cadastro inicial: adiciona direto na lista em memória sem recarregar do SharedPreferences
-      setState(() {
-        _listaEnderecos.add(enderecoNovo);
-      });
-    } else {
-      // No fluxo normal: recarrega a lista do SharedPreferences
-      await carregarEnderecos();
-    }
+    if (enderecoNovo != null) {
+      if (!widget.salvarNaApi) {
+        setState(() {
+          _listaEnderecos.add(enderecoNovo);
+        });
+      } else {
+        await carregarEnderecos();
+      }
 
-    if (mounted) {
-      widget.onChanged(enderecoNovo);
+      if (mounted) {
+        widget.onChanged(enderecoNovo);
+      }
     }
   }
-}
 
-  List<DropdownMenuItem<dynamic>> listaDropdownItems() {
-    final List<DropdownMenuItem<dynamic>> lista = [
+  List<DropdownMenuItem<dynamic>> _gerarItemsDropdown(List<Endereco> listaLimpa) {
+    final List<DropdownMenuItem<dynamic>> items = [
       DropdownMenuItem<dynamic>(
         value: 'CADASTRAR',
         child: Row(
@@ -86,8 +82,8 @@ class _DropDownEnderecoState extends State<DropDownEndereco> {
       ),
     ];
 
-    for (var endereco in _listaEnderecos) {
-      lista.add(
+    for (var endereco in listaLimpa) {
+      items.add(
         DropdownMenuItem<dynamic>(
           value: endereco,
           child: Text(
@@ -100,54 +96,65 @@ class _DropDownEnderecoState extends State<DropDownEndereco> {
       );
     }
 
-    return lista;
+    return items;
   }
 
   @override
-Widget build(BuildContext context) {
-  Endereco? selectedValue;
-
-  if (widget.enderecoSelecionado != null && _listaEnderecos.isNotEmpty) {
-    try {
-      selectedValue = _listaEnderecos.firstWhere(
-        (e) => e == widget.enderecoSelecionado,
-      );
-    } catch (_) {
-      selectedValue = null;
+  Widget build(BuildContext context) {
+    // 1. Remove duplicidades criando uma lista limpa por comparação de campos
+    final List<Endereco> listaLimpa = [];
+    for (var item in _listaEnderecos) {
+      bool jaExiste = listaLimpa.any((e) => e == item);
+      if (!jaExiste) {
+        listaLimpa.add(item);
+      }
     }
+
+    // 2. Garante que selectedValue seja a MESMA instância presente na listaLimpa
+    Endereco? selectedValue;
+    if (widget.enderecoSelecionado != null && listaLimpa.isNotEmpty) {
+      try {
+        selectedValue = listaLimpa.firstWhere(
+          (e) => e == widget.enderecoSelecionado,
+        );
+      } catch (_) {
+        // Se não achar exact match, adiciona a referência na lista limpa para não quebrar a assertion
+        listaLimpa.add(widget.enderecoSelecionado!);
+        selectedValue = widget.enderecoSelecionado;
+      }
+    }
+
+    // 3. Gera uma chave baseada na quantidade e nos dados do selecionado
+    final String keyUnique = selectedValue != null
+        ? '${selectedValue.id}_${selectedValue.cep}_${selectedValue.numero}_${listaLimpa.length}'
+        : 'sem_selecao_${listaLimpa.length}';
+
+    return DropdownButtonFormField<dynamic>(
+      key: ValueKey(keyUnique),
+      initialValue: selectedValue,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: 'Endereço ${widget.label}',
+        prefixIcon: widget.icon,
+      ),
+      hint: Text(
+        'Cadastre um endereço',
+        style: Theme.of(context).textTheme.bodyMedium,
+      ),
+      items: _gerarItemsDropdown(listaLimpa),
+      onChanged: (dynamic novoValor) {
+        if (novoValor == 'CADASTRAR') {
+          abrirCadastroEndereco();
+        } else if (novoValor is Endereco) {
+          widget.onChanged(novoValor);
+        }
+      },
+      validator: (value) {
+        if (widget.enderecoSelecionado == null) {
+          return 'Selecione ou cadastre um endereço';
+        }
+        return null;
+      },
+    );
   }
-
-  // Gera uma chave única usando id, cep ou logradouro + número
-  final String keyString = selectedValue != null
-      ? '${selectedValue.id}_${selectedValue.cep}_${selectedValue.logradouro}_${selectedValue.numero}'
-      : 'sem_selecao';
-
-  return DropdownButtonFormField<dynamic>(
-    key: ValueKey(keyString),
-    initialValue: selectedValue,
-    isExpanded: true,
-    decoration: InputDecoration(
-      labelText: 'Endereço ${widget.label}',
-      prefixIcon: widget.icon,
-    ),
-    hint: Text(
-      'Cadastre um endereço',
-      style: Theme.of(context).textTheme.bodyMedium,
-    ),
-    items: listaDropdownItems(),
-    onChanged: (dynamic novoValor) {
-      if (novoValor == 'CADASTRAR') {
-        abrirCadastroEndereco();
-      } else if (novoValor is Endereco) {
-        widget.onChanged(novoValor);
-      }
-    },
-    validator: (value) {
-      if (widget.enderecoSelecionado == null) {
-        return 'Selecione ou cadastre um endereço';
-      }
-      return null;
-    },
-  );
-}
 }

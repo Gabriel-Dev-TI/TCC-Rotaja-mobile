@@ -49,11 +49,19 @@ class _DadosState extends State<Dados> {
       if (empresa != null) {
         resultado['cnpj'] = empresa['cnpj'];
 
-        final endereco = empresa['endereco'];
+        final List<dynamic>? enderecos = empresa['enderecos'];
 
-        if (endereco != null) {
-          resultado['endereco'] =
-              '${endereco['logradouro']}, ${endereco['numero']}';
+        if (enderecos != null && enderecos.isNotEmpty) {
+          // Busca o primeiro endereço da lista onde o tipo seja "proprio"
+          final enderecoProprio = enderecos.firstWhere(
+            (e) => e['tipo'] == 'proprio',
+            orElse: () => null,
+          );
+
+          if (enderecoProprio != null) {
+            resultado['endereco'] =
+                '${enderecoProprio['logradouro']}, ${enderecoProprio['numero']}';
+          }
         }
       }
     }

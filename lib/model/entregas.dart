@@ -74,17 +74,15 @@ class Entregas {
       'nome_produto':nomeProduto,
       'empresa': empresa?.toJson(),
       'entregador': entregador?.toJson(),
-      'origem': origem?.toJson(),
-      'destino': destino?.toJson(),
+      'origem': origem!.id,
+      'destino': destino!.id,
       'status': status?.name,
-      'preco': preco,
+      'comprimento': comprimento,
       'peso': peso,
       'altura': altura,
       'largura': largura,
       'observacoes': observacoes,
       'descricao': descricao,
-      'distancia':distancia,
-      'tempo_estimado_minutos':tempoEstimado,
     };
   }
 }

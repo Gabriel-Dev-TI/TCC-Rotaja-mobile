@@ -19,6 +19,9 @@ class _EntregaCadastroState extends State<EntregaCadastro> {
   final _larguraController = TextEditingController();
   final _alturaController = TextEditingController();
   final _pesoController = TextEditingController();
+  final _nomeController = TextEditingController();
+  final _comprimentoController = TextEditingController();
+  final _descricaoController = TextEditingController();
 
   Endereco? _origemController;
   Endereco? _destinoController;
@@ -27,6 +30,9 @@ class _EntregaCadastroState extends State<EntregaCadastro> {
 
   @override
   void dispose() {
+    _nomeController.dispose();
+    _comprimentoController.dispose();
+    _descricaoController.dispose();
     _larguraController.dispose();
     _alturaController.dispose();
     _pesoController.dispose();
@@ -46,24 +52,15 @@ class _EntregaCadastroState extends State<EntregaCadastro> {
     Entregas entrega = Entregas(
       origem: _origemController!,
       destino: _destinoController!,
-      largura:
-          double.tryParse(_larguraController.text.replaceAll(',', '.')) ?? 0.0,
-      altura:
-          double.tryParse(_alturaController.text.replaceAll(',', '.')) ?? 0.0,
+      largura:double.tryParse(_larguraController.text.replaceAll(',', '.')) ?? 0.0,
+      altura:double.tryParse(_alturaController.text.replaceAll(',', '.')) ?? 0.0,
       peso: double.tryParse(_pesoController.text.replaceAll(',', '.')) ?? 0.0,
+      comprimento: double.tryParse(_comprimentoController.text.replaceAll(',', '.')) ?? 0.0,
+      descricao: _descricaoController.text,
+      nomeProduto: _nomeController.text,
     );
 
-    Entregas? entregaCompleta = await calculaRota(entrega);
-
-    if(entregaCompleta == null){
-      if (mounted) {
-      mostraSnackBar.show(context, 'Erro ao traçar dados da entrega', true);
-      setState(() => isLoading = false);
-    }
-    }
-    else{
-
-    String resposta = await cadastraEntrega(entregaCompleta!);
+    String resposta = await cadastraEntrega(entrega);
     bool cadastroFalhou = resposta != 'Entrega cadastrada com sucesso!';
 
     if (mounted) {
@@ -72,7 +69,7 @@ class _EntregaCadastroState extends State<EntregaCadastro> {
       }
       mostraSnackBar.show(context, resposta, cadastroFalhou);
       setState(() => isLoading = false);
-    }}
+    }
   }
 
   @override
@@ -93,7 +90,7 @@ class _EntregaCadastroState extends State<EntregaCadastro> {
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(16.0),
           child: Form(
             key: _formKey,
             child: Center(
@@ -106,7 +103,7 @@ class _EntregaCadastroState extends State<EntregaCadastro> {
                     size: 60,
                     color: primaryColor,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 5),
                   Text(
                     'Nova Entrega',
                     textAlign: TextAlign.center,
@@ -118,7 +115,7 @@ class _EntregaCadastroState extends State<EntregaCadastro> {
                     textAlign: TextAlign.center,
                     style: tema.textTheme.titleSmall,
                   ),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 10),
 
                   Card(
                     color: tema.colorScheme.onSecondary,
@@ -126,20 +123,70 @@ class _EntregaCadastroState extends State<EntregaCadastro> {
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
+                        crossAxisAlignment: .start,
                         children: [
                           Row(
                             children: [
                               Icon(Icons.inventory_2_outlined),
                               SizedBox(width: 10),
                               Text(
-                                'Dimensões do Produto',
+                                'Produto',
                                 style: tema.textTheme.bodyMedium!.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                            Expanded(
+                            flex: 2,
+                            child: TextFormField(
+                                    controller: _nomeController,
+                                    keyboardType: TextInputType.name,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Nome do Produto',
+                                    ),
+                                    validator: (v) =>
+                                        v == null || v.isEmpty ? 'Informe' : null,
+                                  ),
+                          ),
+                          const SizedBox(width: 8),
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _pesoController,
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
+                                    decoration: const InputDecoration(
+                                      labelText: 'Peso (kg)',
+                                    ),
+                                    validator: (v) =>
+                                        v == null || v.isEmpty ? 'Informe' : null,
+                                  ),
+                                ),
+                          ],),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                                    controller: _descricaoController,
+                                    keyboardType: TextInputType.name,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Descrição do Produto',
+                                    ),
+                                    validator: (v) =>
+                                        v == null || v.isEmpty ? 'Informe' : null,
+                                  ),
+                          const SizedBox(height: 6),
+                              Text(
+                                'Dimensões do Produto',
+                                style: tema.textTheme.bodyMedium!.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                          const SizedBox(height: 6),
+                          
 
                           Row(
                             children: [
@@ -175,13 +222,13 @@ class _EntregaCadastroState extends State<EntregaCadastro> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: TextFormField(
-                                  controller: _pesoController,
+                                  controller: _comprimentoController,
                                   keyboardType:
                                       const TextInputType.numberWithOptions(
                                         decimal: true,
                                       ),
                                   decoration: const InputDecoration(
-                                    labelText: 'Peso (kg)',
+                                    labelText: 'Comprimento (cm)',
                                   ),
                                   validator: (v) =>
                                       v == null || v.isEmpty ? 'Informe' : null,
@@ -189,33 +236,36 @@ class _EntregaCadastroState extends State<EntregaCadastro> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 16),
                           DropDownEndereco(
                             enderecoSelecionado: _origemController,
                             label: 'de Origem',
                             icon: const Icon(Icons.location_on_outlined),
+                            salvarNaApi: true,
                             onChanged: (novoEndereco) {
                               setState(() {
                                 _origemController = novoEndereco;
                               });
                             },
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 16),
                           DropDownEndereco(
                             enderecoSelecionado: _destinoController,
                             label: 'de Destino',
                             icon: const Icon(Icons.flag_outlined),
+                            salvarNaApi: true,
                             onChanged: (novoEndereco) {
                               setState(() {
                                 _destinoController = novoEndereco;
                               });
                             },
                           ),
+                          
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
 
                   SizedBox(
                     height: 52,

@@ -57,11 +57,11 @@ class Endereco {
       'estado': estado,
       'cep': cep,
       'complemento': complemento,
-      'latitude' : latitude,
-      'longitude' : longitude,
+      'latitude' : latitude.toString(),
+      'longitude' : longitude.toString(),
     };
   } 
-
+  
   // Essencial para o Dropdown saber qual item é igual a qual
   @override
   bool operator ==(Object other) =>

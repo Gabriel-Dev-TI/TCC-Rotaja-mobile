@@ -61,6 +61,7 @@ Future<String> cadastrarEndereco(Endereco endereco) async {
     LatLng? cordenadas = await conversao.converteEmCordenadas(endereco);
 
     if (cordenadas != null) {
+
       endereco.latitude = cordenadas.latitude;
       endereco.longitude = cordenadas.longitude;
 

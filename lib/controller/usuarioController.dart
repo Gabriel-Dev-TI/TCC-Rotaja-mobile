@@ -25,7 +25,16 @@ Future<String> fazLogin ({required TextEditingController email, required TextEdi
 
         await prefs.setString('token', dados['token']);
         await prefs.setString('cargo', dados['usuario']['cargo']);
-        await prefs.setString('usuario', dados['usuario']);
+        await prefs.setString('usuario', jsonEncode(dados['usuario']));
+
+        if(dados['usuario']['cargo'] == 'empresa'){
+          final List<dynamic>? listaJson = dados['usuario']['empresa']['enderecos'];
+
+          if (listaJson != null && listaJson.isNotEmpty) {
+            await prefs.setString('enderecos', jsonEncode(listaJson));
+          }
+
+        }
 
         return "Login realizado com sucesso";
           

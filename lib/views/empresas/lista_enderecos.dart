@@ -1,13 +1,32 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:rotaja/controller/enderecoController.dart';
 import 'package:rotaja/model/endereco.dart';
 import 'package:rotaja/views/animacoes/animacao_carregando.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ListaEnderecos extends StatefulWidget {
   const ListaEnderecos({super.key});
 
   @override
   State<ListaEnderecos> createState() => _ListaEnderecosState();
+}
+
+Future<List<Endereco>> carregarEnderecosSalvos() async {
+  final prefs = await SharedPreferences.getInstance();
+  final String? enderecosJson = prefs.getString('enderecos');
+
+  if (enderecosJson != null && enderecosJson.isNotEmpty) {
+    final List<dynamic> listaDecodificada = jsonDecode(enderecosJson);
+    
+    // Mapeia cada Map para uma instância da model Endereco
+    return listaDecodificada
+        .map((item) => Endereco.fromJson(Map<String, dynamic>.from(item)))
+        .toList();
+  }
+
+  return [];
 }
 
 class _ListaEnderecosState extends State<ListaEnderecos> {
@@ -21,7 +40,7 @@ class _ListaEnderecosState extends State<ListaEnderecos> {
         ),
       ),
       body: FutureBuilder<List<Endereco>>(
-        future: listarSharedPreferences(),
+        future: carregarEnderecosSalvos(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return AnimacaoCarregando();
@@ -120,7 +139,7 @@ class _ListaEnderecosState extends State<ListaEnderecos> {
                               ),
                             ),
                              Text(
-                              "${endereco.longitude} - ${endereco.latitude}",
+                              "${endereco.longitude} - ${endereco.latitude} -- id:${endereco.id}",
                               style: const TextStyle(fontSize: 14, color: Color(0xFF475569)),
                             ),
                             const SizedBox(height: 4),

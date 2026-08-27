@@ -13,8 +13,11 @@ Future<String> cadastraEmpresa(Empresa empresa) async {
       final prefs = await SharedPreferences.getInstance();
 
       await prefs.setString('token', dados['token']);
-      await prefs.setString('usuario', dados['usuario']);
+      await prefs.setString('usuario', jsonEncode(dados['usuario']));
       await prefs.setString('cargo', 'empresa');
+      
+      final List<dynamic>? listaJson = dados['usuario']['empresa']['enderecos'];
+      await prefs.setString('enderecos', jsonEncode(listaJson));
 
       return 'Empresa cadastrada com sucesso!';
     } else if (resposta.statusCode == 422 && resposta.body.isNotEmpty) {

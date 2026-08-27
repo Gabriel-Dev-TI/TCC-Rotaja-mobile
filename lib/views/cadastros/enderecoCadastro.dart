@@ -87,37 +87,45 @@ class _EnderecoCadastroState extends State<EnderecoCadastro> {
   );
 
   /*
-  Se salvarNaApi for false, é endereço proprio da empresa
-  e sera cadastrado em uma requisicao junto com a empresa
-  e aqui apenas verfica se o endereço é valido pegando as cordenadas
+  Se salvarNaApi for false, é um endereço próprio preenchido no formulário da empresa.
+  Ele NÃO deve fazer requisição HTTP para a API /enderecos agora, 
+  apenas converter as coordenadas e retornar o objeto para a tela anterior.
   */
-  
   if (!widget.salvarNaApi) {
-    final conversao = Cordenadas();
-    LatLng? cordenadas = await conversao.converteEmCordenadas(endereco);
-    
-    if (cordenadas != null) {
-      endereco.latitude = cordenadas.latitude;
-      endereco.longitude = cordenadas.longitude;
-      
-      // Fecha a tela e devolve o endereço apenas com os dados locais
-      if (mounted) Navigator.pop(context, endereco);
-      mostraSnackBar.show(context, 'Endereço salvo com sucesso!', false);
-    }
-    }
-    else{
+    try {
+      final conversao = Cordenadas();
+      LatLng? cordenadas = await conversao.converteEmCordenadas(endereco);
 
+      if (cordenadas != null) {
+        endereco.latitude = cordenadas.latitude;
+        endereco.longitude = cordenadas.longitude;
+      }
+    } catch (_) {
+      // Caso a busca por coordenadas falhe, prossegue permitindo o cadastro do endereço localmente
+    }
+
+    if (mounted) {
+      Navigator.pop(context, endereco);
+      mostraSnackBar.show(context, 'Endereço selecionado com sucesso!', false);
+    }
+
+    setState(() => isLoading = false);
+    return; // <--- O return evita que a execução caia na requisição API abaixo
+  }
+
+  // Executa apenas quando cadastrar um endereço individualmente 
   String resposta = await cadastrarEndereco(endereco);
   bool cadastroFalhou = resposta != 'Endereço salvo com sucesso!';
 
   if (!cadastroFalhou && mounted) {
     Navigator.pop(context, endereco);
   }
-  
+
+  if (mounted) {
     mostraSnackBar.show(context, resposta, cadastroFalhou);
-    }
-    setState(() => isLoading = false);
-  
+  }
+
+  setState(() => isLoading = false);
 }
 
   @override

@@ -37,44 +37,32 @@ class _SplashState extends State<Splash> {
   }
 
   Future<bool> atualizaDados() async {
-    try {
-      //Busca os dados atualizados do banco de dados
-      final resposta = await Api().get('/verifica-dados');
+  try {
+    final resposta = await Api().get('/verifica-dados');
 
-      if (resposta.statusCode == 200 && resposta.body.isNotEmpty) {
+    if (resposta.statusCode == 200 && resposta.body.isNotEmpty) {
+      final dados = jsonDecode(resposta.body);
+      final prefs = await SharedPreferences.getInstance();
 
-        final dados = jsonDecode(resposta.body);
-        final prefs = await SharedPreferences.getInstance();
-        final usuario = jsonEncode(dados['dados']);
+      final usuarioDados = dados['dados'];
+      await prefs.setString('usuario', jsonEncode(usuarioDados));
 
-        await prefs.setString('usuario', usuario);
+      if (usuarioDados != null && usuarioDados['cargo'] == 'empresa') {
+        final List<dynamic>? listaJson = usuarioDados['empresa']?['enderecos'];
 
-        if(dados['dados']['cargo'] == 'empresa'){
-      
-        //Salva o endereco da empresa
-        salvarSharedPreferences(
-          Endereco(
-            tipoEndereco: dados['dados']['endereco']['tipo'],
-            logradouro: dados['dados']['endereco']['logradouro'],
-            numero: dados['dados']['endereco']['numero'],
-            bairro: dados['dados']['endereco']['bairro'],
-            cep: dados['dados']['endereco']['cep'],
-            cidade: dados['dados']['endereco']['cidade'],
-            estado: dados['dados']['endereco']['estado'],
-            
-          ),
-        );
-
-        return true;
+        if (listaJson != null && listaJson.isNotEmpty) {
+          await prefs.setString('enderecos', jsonEncode(listaJson));
+        } else {
+          await prefs.remove('enderecos'); // Limpa caso a lista venha vazia
         }
-        return true;
       }
-      return false;
-    } catch (e) {
-      return false;
+      return true;
     }
+    return false;
+  } catch (e) {
+    return false;
   }
-
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
