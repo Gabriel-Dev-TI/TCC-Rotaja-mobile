@@ -117,8 +117,24 @@ class _EnderecoCadastroState extends State<EnderecoCadastro> {
   String resposta = await cadastrarEndereco(endereco);
   bool cadastroFalhou = resposta != 'Endereço salvo com sucesso!';
 
-  if (!cadastroFalhou && mounted) {
-    Navigator.pop(context, endereco);
+    if (!cadastroFalhou && mounted) {
+      if (widget.salvarNaApi) {
+        final enderecos = await listarSharedPreferences();
+
+        final enderecoSalvo = enderecos.lastWhere(
+          (e) =>
+              e.logradouro == endereco.logradouro &&
+              e.bairro == endereco.bairro &&
+              e.cidade == endereco.cidade &&
+              e.estado == endereco.estado &&
+              e.numero == endereco.numero &&
+              e.cep == endereco.cep,
+        );
+
+        Navigator.pop(context, enderecoSalvo);
+      } else {
+        Navigator.pop(context, endereco);
+      }
   }
 
   if (mounted) {
@@ -252,11 +268,11 @@ class _EnderecoCadastroState extends State<EnderecoCadastro> {
           child: const Text('Cancelar'),
         ),
         SizedBox(
-          width: 100,
-          height: 35,
+          height: 40,
           child: ElevatedButton(
             onPressed: isLoading ? null : salvar,
-            child: isLoading ? AnimacaoCarregandoBtn() : const Text('Salvar'),
+            style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16),),
+            child: isLoading? AnimacaoCarregandoBtn(): const Text('Salvar'),
           ),
         ),
       ],

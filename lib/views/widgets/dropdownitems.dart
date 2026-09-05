@@ -46,14 +46,12 @@ class _DropDownEnderecoState extends State<DropDownEndereco> {
     );
 
     if (enderecoNovo != null) {
-      if (!widget.salvarNaApi) {
-        setState(() {
-          _listaEnderecos.add(enderecoNovo);
-        });
-      } else {
+      if (widget.salvarNaApi) {
         await carregarEnderecos();
+      } else {
+        setState(() => _listaEnderecos.add(enderecoNovo));
       }
-
+      
       if (mounted) {
         widget.onChanged(enderecoNovo);
       }
@@ -101,7 +99,7 @@ class _DropDownEnderecoState extends State<DropDownEndereco> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Remove duplicidades criando uma lista limpa por comparação de campos
+    // Remove duplicidades criando uma lista limpa por comparação de campos
     final List<Endereco> listaLimpa = [];
     for (var item in _listaEnderecos) {
       bool jaExiste = listaLimpa.any((e) => e == item);
@@ -110,7 +108,7 @@ class _DropDownEnderecoState extends State<DropDownEndereco> {
       }
     }
 
-    // 2. Garante que selectedValue seja a MESMA instância presente na listaLimpa
+    // Garante que selectedValue seja a MESMA instância presente na listaLimpa
     Endereco? selectedValue;
     if (widget.enderecoSelecionado != null && listaLimpa.isNotEmpty) {
       try {
@@ -124,13 +122,7 @@ class _DropDownEnderecoState extends State<DropDownEndereco> {
       }
     }
 
-    // 3. Gera uma chave baseada na quantidade e nos dados do selecionado
-    final String keyUnique = selectedValue != null
-        ? '${selectedValue.id}_${selectedValue.cep}_${selectedValue.numero}_${listaLimpa.length}'
-        : 'sem_selecao_${listaLimpa.length}';
-
     return DropdownButtonFormField<dynamic>(
-      key: ValueKey(keyUnique),
       initialValue: selectedValue,
       isExpanded: true,
       decoration: InputDecoration(

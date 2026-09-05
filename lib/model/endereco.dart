@@ -48,6 +48,7 @@ class Endereco {
 
   Map<String, dynamic> toJson() {
     return {
+      'id':id,
       'empresa_id': empresaId,
       'tipo': tipoEndereco?.name,
       'logradouro': logradouro,
