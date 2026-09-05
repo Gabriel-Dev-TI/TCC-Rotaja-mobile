@@ -14,12 +14,12 @@ class AnimacaoErro extends StatelessWidget {
           children: [
             Expanded(
               flex: 6,
-              child: Lottie.asset("assets/animacoes/sem-conexao.json"),
+              child: Lottie.asset("assets/animacoes/Error.json"),
             ),
 
             Expanded(
               child: Text(
-                "Sem conexão com a internet.",
+                "Erro ao consultar verifique sua conexão.",
                 style: Theme.of(
                   context,
                 ).textTheme.titleSmall!.copyWith(fontSize: 20),

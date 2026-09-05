@@ -6,6 +6,6 @@ class AnimacaoCarregandoBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(child: Lottie.asset('assets/animacoes/carregando.json'),);
+    return Center(child: Lottie.asset('assets/animacoes/carregandobtn.json'),);
   }
 }

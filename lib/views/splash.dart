@@ -1,8 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:rotaja/controller/enderecoController.dart';
-import 'package:rotaja/model/endereco.dart';
 import 'package:rotaja/repository/api.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';

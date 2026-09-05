@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:rotaja/controller/entregaController.dart';
 import 'package:rotaja/model/endereco.dart';
 import 'package:rotaja/model/entregas.dart';
@@ -160,6 +161,10 @@ class _EntregaCadastroState extends State<EntregaCadastro> {
                                         const TextInputType.numberWithOptions(
                                           decimal: true,
                                         ),
+                                    inputFormatters: [
+                                      // Permite apenas dígitos e o ponto decimal
+                                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                                    ],
                                     decoration: const InputDecoration(
                                       labelText: 'Peso (kg)',
                                     ),
@@ -175,8 +180,6 @@ class _EntregaCadastroState extends State<EntregaCadastro> {
                                     decoration: const InputDecoration(
                                       labelText: 'Descrição do Produto',
                                     ),
-                                    validator: (v) =>
-                                        v == null || v.isEmpty ? 'Informe' : null,
                                   ),
                           const SizedBox(height: 6),
                               Text(
@@ -197,6 +200,10 @@ class _EntregaCadastroState extends State<EntregaCadastro> {
                                       const TextInputType.numberWithOptions(
                                         decimal: true,
                                       ),
+                                  inputFormatters: [
+                                      // Permite apenas dígitos e o ponto decimal
+                                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                                    ],
                                   decoration: const InputDecoration(
                                     labelText: 'Largura (cm)',
                                   ),
@@ -212,6 +219,10 @@ class _EntregaCadastroState extends State<EntregaCadastro> {
                                       const TextInputType.numberWithOptions(
                                         decimal: true,
                                       ),
+                                  inputFormatters: [
+                                      // Permite apenas dígitos e o ponto decimal
+                                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                                    ],
                                   decoration: const InputDecoration(
                                     labelText: 'Altura (cm)',
                                   ),
@@ -227,6 +238,10 @@ class _EntregaCadastroState extends State<EntregaCadastro> {
                                       const TextInputType.numberWithOptions(
                                         decimal: true,
                                       ),
+                                  inputFormatters: [
+                                      // Permite apenas dígitos e o ponto decimal
+                                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                                    ],
                                   decoration: const InputDecoration(
                                     labelText: 'Comprimento (cm)',
                                   ),

@@ -2,7 +2,7 @@ import 'package:rotaja/model/empresa.dart';
 import 'package:rotaja/model/endereco.dart';
 import 'package:rotaja/model/entregador.dart';
 
-enum Status { pendente, aceito, em_transito, concluido, cancelado }
+enum Status { pendente, aceita, em_transito, concluido, cancelado }
 
 class Entregas {
   int? id;

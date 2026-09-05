@@ -163,14 +163,91 @@ class _PainelState extends State<Painel> {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '$bairroOrigem  =>  $bairroDestino',
-                                    style: tema.textTheme.bodySmall?.copyWith(
-                                      color: Colors.grey[600],
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Column(
+                                        children: [
+                                          const Icon(
+                                            Icons.radio_button_checked,
+                                            color: Colors.deepPurple,
+                                            size: 20,
+                                          ),
+                                          Container(
+                                            width: 2,
+                                            height: 30,
+                                            color: Colors.grey.shade300,
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Ponto de Coleta',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.deepPurple,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                                  entrega.origem!.bairro,
+                                                  style: tema.textTheme.bodySmall?.copyWith(
+                                                    color: Colors.grey[600],
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Column(
+                                        children: [
+                                          Icon(
+                                            Icons.location_on,
+                                            color: Colors.redAccent,
+                                            size: 22,
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Ponto de Entrega',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.redAccent,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                                  entrega.destino!.bairro,
+                                                  style: tema.textTheme.bodySmall?.copyWith(
+                                                    color: Colors.grey[600],
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                            
+                                          
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -182,7 +259,7 @@ class _PainelState extends State<Painel> {
                               children: [
                                 if (entrega.status != null)
                                   converteStatus(status: entrega.status!),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 50),
                                 Text(
                                   precoFormatado,
                                   style: const TextStyle(

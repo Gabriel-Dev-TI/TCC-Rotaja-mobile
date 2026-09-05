@@ -18,7 +18,7 @@ class converteStatus extends StatelessWidget {
         icon = Icons.schedule_rounded;
         label = 'Pendente';
         break;
-        case Status.aceito:
+        case Status.aceita:
         bg = const Color(0xFFEFF6FF);
         color = Colors.blue;
         icon = Icons.local_shipping_outlined;
