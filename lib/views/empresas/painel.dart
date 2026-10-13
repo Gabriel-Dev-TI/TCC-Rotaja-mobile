@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:rotaja/model/entregas.dart';
@@ -15,12 +16,25 @@ class Painel extends StatefulWidget {
 
 class _PainelState extends State<Painel> {
   late Future<List<Entregas>?> _entregasAndamento;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _entregasAndamento = _getEntregasAndamento();
+     _entregasAndamento = _getEntregasAndamento();
+    _timer = Timer.periodic(const Duration(seconds: 30),(_) { setState(() {_entregasAndamento = _getEntregasAndamento();});});
   }
+
+  @override
+  void dispose() {
+    stopTimer();
+    super.dispose();
+  }
+  
+  void stopTimer() {
+    _timer?.cancel();
+  }
+
 
   Future<List<Entregas>?> _getEntregasAndamento() async {
     try {
@@ -196,7 +210,7 @@ class _PainelState extends State<Painel> {
                                             ),
                                             const SizedBox(height: 2),
                                             Text(
-                                                  entrega.origem!.bairro,
+                                                  bairroOrigem,
                                                   style: tema.textTheme.bodySmall?.copyWith(
                                                     color: Colors.grey[600],
                                                   ),
@@ -235,7 +249,7 @@ class _PainelState extends State<Painel> {
                                             ),
                                             const SizedBox(height: 2),
                                             Text(
-                                                  entrega.destino!.bairro,
+                                                  bairroDestino,
                                                   style: tema.textTheme.bodySmall?.copyWith(
                                                     color: Colors.grey[600],
                                                   ),

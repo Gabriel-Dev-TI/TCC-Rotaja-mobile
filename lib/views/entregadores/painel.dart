@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:rotaja/model/entregas.dart';
@@ -14,11 +15,23 @@ class Painel extends StatefulWidget {
 
 class _PainelState extends State<Painel> {
   late Future<List<Entregas>?> _entregasDisponiveisFuture;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _entregasDisponiveisFuture = _getEntregasDisponiveis();
+     _entregasDisponiveisFuture = _getEntregasDisponiveis();
+    _timer = Timer.periodic(const Duration(seconds: 30),(_) { setState(() { _entregasDisponiveisFuture = _getEntregasDisponiveis();});});
+  }
+
+  @override
+  void dispose() {
+    stopTimer();
+    super.dispose();
+  }
+  
+  void stopTimer() {
+    _timer?.cancel();
   }
 
   Future<List<Entregas>?> _getEntregasDisponiveis() async {
