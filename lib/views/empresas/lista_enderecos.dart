@@ -1,10 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:rotaja/controller/enderecoController.dart';
 import 'package:rotaja/model/endereco.dart';
 import 'package:rotaja/views/cadastros/enderecoCadastro.dart';
 import 'package:rotaja/views/animacoes/animacao_carregando.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ListaEnderecos extends StatefulWidget {
   const ListaEnderecos({super.key});
@@ -14,26 +12,59 @@ class ListaEnderecos extends StatefulWidget {
 }
 
 class _ListaEnderecosState extends State<ListaEnderecos> {
- 
-  final Future<List<Endereco>> _enderecosFuture = _carregarEnderecosSalvos();
+  late Future<List<Endereco>> _enderecosFuture;
 
-  static Future<List<Endereco>> _carregarEnderecosSalvos() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final String? enderecosJson = prefs.getString('enderecos');
-
-      if (enderecosJson != null && enderecosJson.isNotEmpty) {
-        final List<dynamic> listaDecodificada = jsonDecode(enderecosJson);
-        return listaDecodificada
-            .map((item) => Endereco.fromJson(Map<String, dynamic>.from(item)))
-            .toList();
-      }
-    } catch (e) {
-      debugPrint('Erro ao carregar endereços: $e');
-    }
-    return [];
+  @override
+  void initState() {
+    super.initState();
+    _enderecosFuture = listarSharedPreferences();
   }
-  
+
+  void _abrirEdicao(Endereco endereco) {
+    showDialog<Endereco>(
+      context: context,
+      builder: (context) => EnderecoCadastro(
+        salvarNaApi: true,
+        enderecoParaEditar: endereco,
+      ),
+    ).then((_) {
+      setState(() {
+        _enderecosFuture = listarSharedPreferences();
+      });
+    });
+  }
+
+  void _confirmarExclusao(Endereco endereco) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Excluir Endereço'),
+        content: Text(
+            'Deseja excluir "${endereco.logradouro}, ${endereco.numero}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              await removeEndereco(endereco);
+              Navigator.pop(ctx);
+              setState(() {
+                _enderecosFuture = listarSharedPreferences();
+              });
+            },
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cores = Theme.of(context).colorScheme;
@@ -51,9 +82,12 @@ class _ListaEnderecosState extends State<ListaEnderecos> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           await showDialog<Endereco>(
-          context: context,
-          builder: (context) => EnderecoCadastro(salvarNaApi: true),
-        );
+            context: context,
+            builder: (context) => EnderecoCadastro(salvarNaApi: true),
+          );
+          setState(() {
+            _enderecosFuture = listarSharedPreferences();
+          });
         },
         backgroundColor: cores.primary,
         icon: const Icon(Icons.add_location_alt_outlined, color: Colors.white),
@@ -131,12 +165,21 @@ class _ListaEnderecosState extends State<ListaEnderecos> {
     ColorScheme cores,
     Endereco endereco,
   ) {
+    final bool ehProprio = endereco.tipoEndereco == TipoEndereco.proprio;   
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: ehProprio
+            ? cores.primary.withOpacity(0.04)
+            : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.15)),
+        border: Border.all(
+          color: ehProprio
+              ? cores.primary.withOpacity(0.4)
+              : Colors.grey.withOpacity(0.15),
+          width: ehProprio ? 1.5 : 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.03),
@@ -151,11 +194,13 @@ class _ListaEnderecosState extends State<ListaEnderecos> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: cores.primary.withOpacity(0.08),
+              color: ehProprio
+                  ? cores.primary.withOpacity(0.15)
+                  : cores.primary.withOpacity(0.08),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
-              Icons.location_on_outlined,
+              ehProprio ? Icons.business_rounded : Icons.location_on_outlined,
               color: cores.primary,
               size: 22,
             ),
@@ -165,6 +210,24 @@ class _ListaEnderecosState extends State<ListaEnderecos> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (ehProprio)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: cores.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    margin: const EdgeInsets.only(bottom: 6),
+                    child: Text(
+                      'Endereço da Empresa',
+                      style: tema.bodySmall?.copyWith(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: cores.primary,
+                      ),
+                    ),
+                  ),
                 Text(
                   '${endereco.logradouro}, Nº ${endereco.numero}',
                   style: tema.titleMedium?.copyWith(
@@ -216,8 +279,25 @@ class _ListaEnderecosState extends State<ListaEnderecos> {
               ],
             ),
           ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              IconButton(
+                onPressed: () => _abrirEdicao(endereco),
+                icon: Icon(Icons.edit, size: 20, color: cores.primary),
+                tooltip: 'Editar',
+              ),
+              if (!ehProprio)
+              IconButton(
+                onPressed: () => _confirmarExclusao(endereco),
+                icon:
+                    Icon(Icons.delete_outline, size: 20, color: Colors.red),
+                tooltip: 'Excluir',
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
-}
+}   

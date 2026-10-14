@@ -10,8 +10,13 @@ import 'package:latlong2/latlong.dart';
 
 class EnderecoCadastro extends StatefulWidget {
   final bool salvarNaApi;
+  final Endereco? enderecoParaEditar; 
 
-  EnderecoCadastro({super.key,this.salvarNaApi = true,});
+  EnderecoCadastro({
+    super.key,
+    this.salvarNaApi = true,
+    this.enderecoParaEditar,
+  });
 
   @override
   State<EnderecoCadastro> createState() => _EnderecoCadastroState();
@@ -28,12 +33,31 @@ class _EnderecoCadastroState extends State<EnderecoCadastro> {
   final _estadoController = TextEditingController();
   final _complementoController = TextEditingController();
 
-
-  final maskCep   = MaskTextInputFormatter(mask: "#####-###", filter: {"#": RegExp(r'[0-9]')});
+  final maskCep = MaskTextInputFormatter(mask: "#####-###", filter: {"#": RegExp(r'[0-9]')});
 
   bool carregandoCep = false;
   bool isLoading = false;
   final cepService = CepService();
+
+  bool get editando => widget.enderecoParaEditar != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (editando) {
+      preencherCampos(widget.enderecoParaEditar!);
+    }
+  }
+
+  void preencherCampos(Endereco e) {
+    _cepController.text = e.cep ?? '';
+    _logradouroController.text = e.logradouro ?? '';
+    _numeroController.text = e.numero ?? '';
+    _bairroController.text = e.bairro ?? '';
+    _cidadeController.text = e.cidade ?? '';
+    _estadoController.text = e.estado ?? '';
+    _complementoController.text = e.complemento ?? '';
+  }
 
   @override
   void dispose() {
@@ -48,12 +72,9 @@ class _EnderecoCadastroState extends State<EnderecoCadastro> {
   }
 
   Future<void> buscarCep() async {
-    final cep = _cepController.text.trim();
-    if (cep.isEmpty) return;
-
     setState(() => carregandoCep = true);
 
-    final endereco = await cepService.buscarEndereco(cep);
+    final endereco = await cepService.buscarEndereco(_cepController.text.trim());
 
     if (mounted) {
       if (endereco != null) {
@@ -86,68 +107,60 @@ class _EnderecoCadastroState extends State<EnderecoCadastro> {
     complemento: _complementoController.text.trim(),
   );
 
-  /*
-  Se salvarNaApi for false, é um endereço próprio preenchido no formulário da empresa.
-  Ele NÃO deve fazer requisição HTTP para a API /enderecos agora, 
-  apenas converter as coordenadas e retornar o objeto para a tela anterior.
-  */
+  if (editando) {
+    endereco.id = widget.enderecoParaEditar!.id;
+  }
+
   if (!widget.salvarNaApi) {
     try {
       final conversao = Cordenadas();
       LatLng? cordenadas = await conversao.converteEmCordenadas(endereco);
-
       if (cordenadas != null) {
         endereco.latitude = cordenadas.latitude;
         endereco.longitude = cordenadas.longitude;
       }
-    } catch (_) {
-      // Caso a busca por coordenadas falhe, prossegue permitindo o cadastro do endereço localmente
-    }
+    } catch (_) {}
 
-    if (mounted) {
-      Navigator.pop(context, endereco);
-      mostraSnackBar.show(context, 'Endereço selecionado com sucesso!', false);
-    }
-
-    setState(() => isLoading = false);
-    return; // O return evita que a execução caia na requisição API abaixo
+    if (!mounted) return; 
+    Navigator.pop(context, endereco);
+    mostraSnackBar.show(context,
+        editando ? 'Endereço atualizado com sucesso!' : 'Endereço selecionado com sucesso!', false);
+    return;
   }
 
-  // Executa apenas quando cadastrar um endereço individualmente 
-  String resposta = await cadastrarEndereco(endereco);
+  String resposta;
+  if (editando) {
+    resposta = await editarEndereco(endereco);
+  } else {
+    resposta = await cadastrarEndereco(endereco);
+  }
+
   bool cadastroFalhou = resposta != 'Endereço salvo com sucesso!';
 
-    if (!cadastroFalhou && mounted) {
-      if (widget.salvarNaApi) {
-        final enderecos = await listarSharedPreferences();
+  if (!mounted) return;
 
-        final enderecoSalvo = enderecos.lastWhere(
-          (e) =>
-              e.logradouro == endereco.logradouro &&
-              e.bairro == endereco.bairro &&
-              e.cidade == endereco.cidade &&
-              e.estado == endereco.estado &&
-              e.numero == endereco.numero &&
-              e.cep == endereco.cep,
-        );
-
-        Navigator.pop(context, enderecoSalvo);
-      } else {
-        Navigator.pop(context, endereco);
-      }
+  if (!cadastroFalhou && widget.salvarNaApi) {
+    final enderecos = await listarSharedPreferences();
+    final enderecoSalvo = enderecos.lastWhere(
+      (e) => e.logradouro == endereco.logradouro &&
+             e.bairro == endereco.bairro &&
+             e.cidade == endereco.cidade &&
+             e.estado == endereco.estado &&
+             e.numero == endereco.numero &&
+             e.cep == endereco.cep,
+    );
+    Navigator.pop(context, enderecoSalvo);
   }
 
   if (mounted) {
     mostraSnackBar.show(context, resposta, cadastroFalhou);
+    setState(() => isLoading = false);
   }
-
-  setState(() => isLoading = false);
-}
-
+}   
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Cadastro de Endereço'),
+      title: Text(editando ? 'Editar Endereço' : 'Cadastro de Endereço'),
       content: SingleChildScrollView(
         child: Form(
           key: _secondformKey,
@@ -177,18 +190,12 @@ class _EnderecoCadastroState extends State<EnderecoCadastro> {
                               ),
                       ),
                       validator: (value) {
-                        if (value!.length != 9) {
-                          return 'O CEP deve possuir 9 dígitos';
-                        }
-                        if (value!.isEmpty) {
-                          return 'Informe o CEP';
-                        }
+                        if (value!.length != 9) return 'O CEP deve possuir 9 dígitos';
+                        if (value!.isEmpty) return 'Informe o CEP';
                         return null;
                       },
                       onChanged: (value) {
-                        if (value.length == 9) {
-                          buscarCep();
-                        }
+                        if (value.length == 9) buscarCep();
                       },
                     ),
                   ),
@@ -203,12 +210,8 @@ class _EnderecoCadastroState extends State<EnderecoCadastro> {
                         counterText: '',
                       ),
                       validator: (value) {
-                        if (value!.length > 10) {
-                          return 'O Número não pode ter mais de 10 dígitos';
-                        }
-                        if (value!.isEmpty) {
-                          return 'Informe o Número';
-                        }
+                        if (value!.length > 10) return 'Máximo de 10 dígitos';
+                        if (value!.isEmpty) return 'Informe o Número';
                         return null;
                       },
                     ),
@@ -225,8 +228,7 @@ class _EnderecoCadastroState extends State<EnderecoCadastro> {
               TextFormField(
                 controller: _bairroController,
                 decoration: const InputDecoration(labelText: 'Bairro'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Informe o bairro' : null,
+                validator: (value) => value!.isEmpty ? 'Informe o bairro' : null,
               ),
               const SizedBox(height: 12),
               Row(
@@ -271,11 +273,20 @@ class _EnderecoCadastroState extends State<EnderecoCadastro> {
           height: 40,
           child: ElevatedButton(
             onPressed: isLoading ? null : salvar,
-            style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16),),
-            child: isLoading? AnimacaoCarregandoBtn(): const Text('Salvar'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              minimumSize: const Size(120, 40), 
+            ),
+            child: isLoading
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: AnimacaoCarregandoBtn(),
+                  )
+                : Text(editando ? 'Atualizar' : 'Salvar'),
           ),
-        ),
+        ),   
       ],
     );
   }
-}
+}   

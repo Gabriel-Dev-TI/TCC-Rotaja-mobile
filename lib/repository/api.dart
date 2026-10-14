@@ -30,4 +30,16 @@ class Api {
     final headers = await _getHeaders();
     return await http.post(url, headers: headers, body: jsonEncode(body));
   }
+
+  Future<http.Response> put(String caminho, Map<String, dynamic> body) async {
+    final url = Uri.parse('$baseUrl$caminho');
+    final headers = await _getHeaders();
+    return await http.put(url, headers: headers, body: jsonEncode(body));
+  }
+
+  Future<http.Response> delete(String caminho) async {
+    final url = Uri.parse('$baseUrl$caminho');
+    final headers = await _getHeaders();
+    return await http.delete(url, headers: headers);
+  }
 }

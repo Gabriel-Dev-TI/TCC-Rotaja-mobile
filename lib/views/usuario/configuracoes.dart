@@ -67,21 +67,6 @@ class _ConfiguracoesState extends State<Configuracoes> {
             ),
           ),
           SizedBox(height: 20),
-          Text("Preferências", style: tema.titleMedium),
-          ListTile(
-            title: Text("Tema Claro"),
-            leading: Icon(Icons.color_lens),
-            trailing: Switch(
-              value: temaClaro,
-              onChanged: (value) {
-                setState(() {
-                  temaClaro = !temaClaro;
-                });
-              },
-            ),
-            shape: bordaArredondada(5, temaCor.tertiary),
-          ),
-          SizedBox(height: 20),
           InkWell(
             onTap: () async {
 

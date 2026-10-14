@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:rotaja/model/entregas.dart';
-import 'package:rotaja/repository/api.dart';
+import 'package:rotaja/controller/entregadorController.dart';
+import 'package:rotaja/views/animacoes/animacao_erro.dart';
 import 'package:rotaja/views/animacoes/animacao_carregando.dart';
-import 'package:rotaja/views/widgets/card_button.dart';
+
 
 class Painel extends StatefulWidget {
   const Painel({super.key});
@@ -16,13 +16,30 @@ class Painel extends StatefulWidget {
 class _PainelState extends State<Painel> {
   late Future<List<Entregas>?> _entregasDisponiveisFuture;
   Timer? _timer;
+  double _totalGanhos = 0;
 
   @override
   void initState() {
     super.initState();
-     _entregasDisponiveisFuture = _getEntregasDisponiveis();
-    _timer = Timer.periodic(const Duration(seconds: 30),(_) { setState(() { _entregasDisponiveisFuture = _getEntregasDisponiveis();});});
+    _entregasDisponiveisFuture = getEntregasDisponiveis();
+    _carregarGanhos();
+    _timer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) {
+        setState(() {
+          _entregasDisponiveisFuture = getEntregasDisponiveis();
+        });
+      }
+    });
   }
+
+  Future<void> _carregarGanhos() async {
+  final ganhos = await carregarGanhos();
+  if (mounted) {
+    setState(() {
+      _totalGanhos = ganhos;
+    });
+  }
+}
 
   @override
   void dispose() {
@@ -32,24 +49,6 @@ class _PainelState extends State<Painel> {
   
   void stopTimer() {
     _timer?.cancel();
-  }
-
-  Future<List<Entregas>?> _getEntregasDisponiveis() async {
-    try {
-      final client = Api();
-      final resposta = await client.get('/entregas');
-
-      if (resposta.statusCode == 200 && resposta.body.isNotEmpty) {
-        final jsonBody = jsonDecode(resposta.body);
-        final List lista = jsonBody['dados'] ?? [];
-
-        return lista.map((item) => Entregas.fromJson(item)).toList();
-      }
-      return null;
-    } catch (e) {
-      debugPrint('Erro ao buscar entregas: $e');
-      return null;
-    }
   }
 
   @override
@@ -74,12 +73,43 @@ class _PainelState extends State<Painel> {
               style: tema.bodyLarge?.copyWith(color: Colors.grey[600]),
             ),
             const SizedBox(height: 24),
-            CardButton(
-              funcao: () {},
-              titulo: 'Ganhos',
-              subtitulo: 'R\$ 0,00',
-              icone: const Icon(Icons.attach_money),
-            ),
+            ElevatedButton(onPressed: _carregarGanhos, child:Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded( 
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Ganhos',
+                        style: tema.titleMedium?.copyWith(
+                          color: Colors.white, 
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                        Text(
+                          'R\$ ${_totalGanhos.toStringAsFixed(2).replaceAll('.', ',')}',
+                          style: tema.bodySmall?.copyWith(
+                            color: Colors.white70, 
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child:const Icon(Icons.attach_money),
+                    
+                  ),
+              ],
+              ),
+            )),
             const SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -91,7 +121,7 @@ class _PainelState extends State<Painel> {
                 TextButton(
                   onPressed: () {
                     setState(() {
-                      _entregasDisponiveisFuture = _getEntregasDisponiveis();
+                      _entregasDisponiveisFuture = getEntregasDisponiveis();
                     });
                   },
                   child: Text(
@@ -111,10 +141,14 @@ class _PainelState extends State<Painel> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const AnimacaoCarregando();
                 }
+                if (snapshot.hasError || snapshot.data == null) {
+                 return AnimacaoErro();
+                 
+                }
 
-                if (snapshot.hasError ||
-                    !snapshot.hasData ||
-                    snapshot.data!.isEmpty) {
+              final listaEntregas = snapshot.data!;
+
+                if (listaEntregas.isEmpty) {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 32.0),
@@ -132,8 +166,6 @@ class _PainelState extends State<Painel> {
                     ),
                   );
                 }
-
-                final listaEntregas = snapshot.data!;
 
                 return ListView.separated(
                   shrinkWrap: true,
@@ -172,6 +204,8 @@ class _PainelState extends State<Painel> {
     final bairroOrigem = entrega.origem?.bairro ?? 'Origem não informada';
     final bairroDestino = entrega.destino?.bairro ?? 'Destino não informado';
 
+    final botaoTexto = (entrega.status == Status.aceita || entrega.status == Status.em_transito) ? 'Vizualizar rota' : 'Aceitar entrega';
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -179,7 +213,7 @@ class _PainelState extends State<Painel> {
           if (entrega.id != null) {
             Navigator.pushNamed(
               context,
-              '/mapa',
+              '/produto',
               arguments: entrega.id,
             );
           }
@@ -190,10 +224,10 @@ class _PainelState extends State<Painel> {
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.withOpacity(0.15)),
+            border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.15),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -212,7 +246,7 @@ class _PainelState extends State<Painel> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: cores.primary.withOpacity(0.1),
+                            color: cores.primary.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(
@@ -314,7 +348,15 @@ class _PainelState extends State<Painel> {
                 width: double.infinity,
                 height: 44,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    if (entrega.id != null) {
+                      Navigator.pushNamed(
+                        context,
+                        '/mapa',
+                        arguments: entrega.id,
+                      );
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: cores.primary,
                     foregroundColor: Colors.white,
@@ -323,8 +365,8 @@ class _PainelState extends State<Painel> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Aceitar Entrega',
+                  child:Text(
+                    botaoTexto,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,

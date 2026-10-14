@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rotaja/views/usuario/configuracoes.dart';
-import 'package:rotaja/views/produtos/historico.dart';
+import 'package:rotaja/views/usuario/historico.dart';
 import 'package:rotaja/views/empresas/painel.dart';
 
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:rotaja/model/entregas.dart';
 import 'package:rotaja/repository/api.dart';
 import 'package:rotaja/views/animacoes/animacao_carregando.dart';
+import 'package:rotaja/views/animacoes/animacao_erro.dart';
 import 'package:rotaja/views/widgets/status.dart';
 
 class Historico extends StatefulWidget {
@@ -34,7 +35,6 @@ class _HistoricoState extends State<Historico> {
       }
       return null;
     } catch (e) {
-      debugPrint('Erro ao buscar histórico: $e');
       return null;
     }
   }
@@ -71,10 +71,11 @@ class _HistoricoState extends State<Historico> {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const AnimacaoCarregando();
                     }
+                    if (snapshot.hasError || !snapshot.hasData) {
+                      return AnimacaoErro();
+                    }
 
-                    if (snapshot.hasError ||
-                        !snapshot.hasData ||
-                        snapshot.data!.isEmpty) {
+                    if (snapshot.data!.isEmpty) {
                       return Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -164,7 +165,7 @@ class _HistoricoState extends State<Historico> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            Navigator.pushNamed(context, '/produto', arguments: entrega);
+            Navigator.pushNamed(context, '/produto', arguments: entrega.id);
           },
           borderRadius: BorderRadius.circular(18),
           child: Padding(

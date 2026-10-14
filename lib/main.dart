@@ -7,7 +7,7 @@ import 'package:rotaja/views/cadastros/entregaCadastro.dart';
 import 'package:rotaja/views/cadastros/entregadorCadastro.dart';
 import 'package:rotaja/views/empresas/lista_enderecos.dart';
 import 'package:rotaja/views/entregadores/mapa.dart';
-import 'package:rotaja/views/produtos/produto.dart';
+import 'package:rotaja/views/usuario/produto.dart';
 import 'package:rotaja/views/entregadores/navegacao.dart';
 import 'package:rotaja/views/empresas/navegacao.dart';
 import 'package:rotaja/views/usuario/dados.dart';
