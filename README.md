@@ -22,4 +22,4 @@ O projeto foi construído utilizando as seguintes ferramentas e pacotes:
  [`latlong2`](https://pub.dev/packages/latlong2): Utilitários matemáticos para coordenadas geográficas (Latitude e Longitude).
  [`geolocator`](https://pub.dev/packages/geolocator): Acesso aos serviços de localização do dispositivo 
 
-# Lottie para animações e flutter pub add page_transition
+# Lottie para animações 

@@ -9,6 +9,8 @@ import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:latlong2/latlong.dart';
 
 class EnderecoCadastro extends StatefulWidget {
+  // salvarNaApi será false quando for cadastrar a empresa pela primeira vez
+  // Porque o endereço será cadastrado junto com a empresa, por isso não precisa de salvar no BD
   final bool salvarNaApi;
   final Endereco? enderecoParaEditar; 
 
@@ -150,6 +152,8 @@ class _EnderecoCadastroState extends State<EnderecoCadastro> {
              e.cep == endereco.cep,
     );
     Navigator.pop(context, enderecoSalvo);
+  }else{
+    Navigator.pop(context);
   }
 
   if (mounted) {

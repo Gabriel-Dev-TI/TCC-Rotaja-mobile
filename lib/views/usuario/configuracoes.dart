@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:rotaja/controller/usuarioController.dart';
 
 class Configuracoes extends StatefulWidget {
   Configuracoes({super.key, this.isEntregador});
@@ -18,7 +18,6 @@ RoundedRectangleBorder bordaArredondada(double tamanho, Color cor) {
 
 class _ConfiguracoesState extends State<Configuracoes> {
   _ConfiguracoesState({this.isEntregador});
-  bool temaClaro = true;
   bool? isEntregador;
 
   @override
@@ -41,7 +40,7 @@ class _ConfiguracoesState extends State<Configuracoes> {
           SizedBox(height: 20),
           Text("Conta", style: tema.titleMedium),
           InkWell(
-            onTap: () async {
+            onTap: () {
               Navigator.pushNamed(context, '/dados');
             },
             child: ListTile(
@@ -69,12 +68,8 @@ class _ConfiguracoesState extends State<Configuracoes> {
           SizedBox(height: 20),
           InkWell(
             onTap: () async {
-
-              SharedPreferences prefs = await SharedPreferences.getInstance();
-              prefs.clear();
-              
-              Navigator.pushReplacementNamed(context, '/splash');
-              
+             await fazLogout();
+             Navigator.pushReplacementNamed(context, '/splash');
             },
             child: ListTile(
               title: Text("Sair da conta"),

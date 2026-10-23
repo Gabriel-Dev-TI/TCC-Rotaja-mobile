@@ -20,15 +20,16 @@ class Entregador extends Usuario {
 
   factory Entregador.fromJson(Map<String, dynamic> json) {
     return Entregador(
-      id: json['id'],
+      id: json['id']?? json['entregador']['id'],
       telefone: json['telefone'] ?? '',
       nome: json['nome'] ?? '',
       email: json['email'] ?? '',
       senha: json['senha'] ?? '',
       cargo: Cargo.values.firstWhere((e) => e.name == json['cargo'],orElse: () => Cargo.entregador,),
       cpf: json['cpf'] ?? '',
-      tipoVeiculo: TipoVeiculo.values.firstWhere((e) => e.name == json['tipo_veiculo'],orElse: () => TipoVeiculo.outro,),
-      criadoEm: json['created_at'] != null? DateTime.tryParse(json['created_at'].toString()) : null,);
+      tipoVeiculo: TipoVeiculo.values.firstWhere((e) => e.name == json['tipo_veiculo'] ,orElse: () => TipoVeiculo.outro,),
+      criadoEm: json['created_at'] ?? json['data_registro'],
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -39,7 +40,6 @@ class Entregador extends Usuario {
       'email': email,
       'senha': senha,
       'cargo': cargo.name,
-      'created_at': criadoEm?.toIso8601String(),
       'cpf': cpf,
       'tipo_veiculo': tipoVeiculo.name,
     };

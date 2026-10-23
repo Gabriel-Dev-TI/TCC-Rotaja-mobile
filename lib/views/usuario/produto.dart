@@ -1,9 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:rotaja/controller/entregaController.dart';
 import 'package:rotaja/model/entregas.dart';
-import 'package:rotaja/repository/api.dart';
 import 'package:rotaja/views/animacoes/animacao_carregando.dart';
 import 'package:rotaja/views/animacoes/animacao_erro.dart';
+import 'package:rotaja/views/widgets/snackbar.dart';
 import 'package:rotaja/views/widgets/status.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,7 +15,6 @@ class Produto extends StatefulWidget {
 }
 
 class _ProdutoState extends State<Produto> {
-  static const primaryColor = Color(0xFF7B33F4);
 
   late Future<Entregas> _entregaFuture;
   String _cargo = '';
@@ -30,21 +29,14 @@ class _ProdutoState extends State<Produto> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    // o didChangeDependencies diferente do initState executa varias vezes
+    // Por isso precisa verificar se ja foi inicado a busca
+    /// No initState não da para pegar o id passado pelo navigator
     if (!_iniciado) {
       _iniciado = true;
       final id = ModalRoute.of(context)!.settings.arguments as int;
-      _entregaFuture = _buscarEntrega(id);
+      _entregaFuture = buscarEntrega(id);
     }
-  }
-
-  Future<Entregas> _buscarEntrega(int id) async {
-    final client = Api();
-    final resposta = await client.get('/entregas/$id');
-    if (resposta.statusCode == 200) {
-      final body = jsonDecode(resposta.body);
-      return Entregas.fromJson(body['dados']);
-    }
-    throw Exception('Erro');
   }
 
   Future<void> _carregarCargo() async {
@@ -68,24 +60,15 @@ class _ProdutoState extends State<Produto> {
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
               Navigator.pop(ctx);
-              try {
-                final client = Api();
-                final resposta = await client.put('/entregas/${entrega.id}', entrega.toJson());
-                if (resposta.statusCode == 200) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Entrega cancelada.')));
-                    Navigator.pop(context);
-                  }
-                } else {
-                  final body = jsonDecode(resposta.body);
-                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(body['mensagem'] ?? 'Erro.')));
-                }
-              } catch (e) {
-                if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Erro: $e')));
+              String resposta = await cancelarEntrega(entrega);
+              bool erro = true;
+              if (resposta == 'Entrega cancelada.'){
+                erro = false;
               }
+              if(!erro){
+              Navigator.pop(ctx);
+              }
+              mostraSnackBar.show(context, resposta, erro);
             },
             child: const Text('Cancelar'),
           ),
@@ -97,13 +80,12 @@ class _ProdutoState extends State<Produto> {
   @override
   Widget build(BuildContext context) {
     final tema = Theme.of(context);
+    final cor = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detalhes da Entrega',
             style: TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: true,
-        elevation: 0,
       ),
       body: FutureBuilder<Entregas>(
         future: _entregaFuture,
@@ -164,10 +146,10 @@ class _ProdutoState extends State<Produto> {
                       const SizedBox(height: 6),
                       Text(
                         precoFormatado,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: primaryColor,
+                          color: cor.primary
                         ),
                       ),
 
@@ -187,7 +169,7 @@ class _ProdutoState extends State<Produto> {
                           border: Border.all(color: Colors.grey.shade200),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withValues(alpha: 0.05),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
@@ -200,9 +182,9 @@ class _ProdutoState extends State<Produto> {
                               children: [
                                 Column(
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.radio_button_checked,
-                                      color: Colors.deepPurple,
+                                      color: cor.primary,
                                       size: 20,
                                     ),
                                     Container(
@@ -217,11 +199,11 @@ class _ProdutoState extends State<Produto> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Text(
+                                      Text(
                                         'Ponto de Coleta',
                                         style: TextStyle(
                                           fontSize: 12,
-                                          color: Colors.deepPurple,
+                                          color: cor.primary,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -300,7 +282,7 @@ class _ProdutoState extends State<Produto> {
                           border: Border.all(color: Colors.grey.shade200),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withValues(alpha: 0.05),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
@@ -362,6 +344,7 @@ class _ProdutoState extends State<Produto> {
                         ),
                         const SizedBox(height: 10),
                         Container(
+                          width: double.infinity,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -369,7 +352,7 @@ class _ProdutoState extends State<Produto> {
                             border: Border.all(color: Colors.grey.shade200),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),
@@ -393,6 +376,7 @@ class _ProdutoState extends State<Produto> {
                         ),
                         const SizedBox(height: 10),
                         Container(
+                          width: double.infinity,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -400,7 +384,7 @@ class _ProdutoState extends State<Produto> {
                             border: Border.all(color: Colors.grey.shade200),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),

@@ -1,46 +1,71 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
-
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
-
-  <!-- iOS meta tags & icons -->
+  <meta name="description" content="Aplicativo de Delivery para empresas e entregadores">
+  <link rel="manifest" href="manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="rotaja">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
-
   <title>rotaja</title>
-  <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <!-- Aviso: modo desktop no celular -->
+  <div id="desktop-warn" style="display:none; position:fixed; top:0; left:0; right:0; background:#6F42C1; color:#fff; padding:12px 16px; font-size:14px; z-index:99999; text-align:center; font-family:sans-serif;">
+    Desative a "Versão para computador" no menu do navegador para instalar o app.
+  </div>
+
+  <!-- Botão instalar (Android / Chrome / Edge) -->
+  <button id="install-btn" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); padding:14px 28px; font-size:16px; background:#6F42C1; color:#fff; border:none; border-radius:10px; cursor:pointer; font-weight:600; z-index:9999; font-family:sans-serif;">
+    Instalar o RotaJá
+  </button>
+
+  <!-- Instruções iOS -->
+  <div id="ios-guide" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); padding:16px; background:#1a1a2e; border:1px solid #6F42C1; border-radius:12px; max-width:320px; width:90%; z-index:9999; color:#fff; font-family:sans-serif; font-size:14px; line-height:1.6;">
+    <p style="font-weight:600; margin-bottom:8px;">Instalar no iPhone:</p>
+    <ol style="padding-left:16px; margin:0;">
+      <li>Toque em <strong>Compartilhar</strong> (⬆️)</li>
+      <li>Escolha <strong>"Adicionar à Tela de Início"</strong></li>
+      <li>Toque em <strong>"Adicionar"</strong></li>
+    </ol>
+  </div>
+
   <script src="flutter_bootstrap.js" async></script>
+
+  <script>
+    // Detecta modo desktop no celular (qualquer navegador)
+    const isTouch = navigator.maxTouchPoints > 1;
+    const isSmallScreen = window.innerWidth < 1024;
+    const isDesktopUA = !/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+    if (isTouch && isSmallScreen && isDesktopUA) {
+      document.getElementById('desktop-warn').style.display = 'block';
+    }
+
+    // Botão instalar (Android)
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('install-btn').style.display = 'block';
+    });
+    document.getElementById('install-btn').addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') document.getElementById('install-btn').style.display = 'none';
+        deferredPrompt = null;
+      }
+    });
+
+    // iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (isIOS) document.getElementById('ios-guide').style.display = 'block';
+  </script>
+
 </body>
-</html>
+</html>   

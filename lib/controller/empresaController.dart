@@ -1,6 +1,6 @@
 import 'dart:convert';
-
 import 'package:rotaja/model/empresa.dart';
+import 'package:rotaja/model/entregas.dart';
 import 'package:rotaja/repository/api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -30,3 +30,20 @@ Future<String> cadastraEmpresa(Empresa empresa) async {
     return 'Falha ao conectar com o servidor. Verifique sua conexão.';
   }
 }
+
+Future<List<Entregas>?> getEntregasAndamento() async {
+    try {
+      final client = Api();
+      final resposta = await client.get('/entregas');
+
+      if (resposta.statusCode == 200 && resposta.body.isNotEmpty) {
+        final jsonBody = jsonDecode(resposta.body);
+        final List lista = jsonBody['dados'] ?? [];
+
+        return lista.map((item) => Entregas.fromJson(item)).toList();
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }

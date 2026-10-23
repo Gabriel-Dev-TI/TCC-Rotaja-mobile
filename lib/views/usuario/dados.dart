@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:rotaja/controller/usuarioController.dart';
+import 'package:rotaja/model/usuario.dart';
 import 'package:rotaja/repository/api.dart';
 import 'package:rotaja/views/animacoes/animacao_carregando.dart';
 import 'package:rotaja/views/animacoes/animacao_erro.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:rotaja/views/widgets/snackbar.dart';
 
 class Dados extends StatefulWidget {
@@ -40,58 +41,6 @@ class _DadosState extends State<Dados> {
     super.dispose();
   }
 
-  Future<Map<String, dynamic>?> carregaDados() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final usuarioJson = prefs.getString('usuario');
-
-      if (usuarioJson == null || usuarioJson.isEmpty) return null;
-
-      final dados = jsonDecode(usuarioJson);
-
-      final Map<String, dynamic> resultado = {
-        'cargo': dados['cargo'],
-        'nome': dados['nome'],
-        'email': dados['email'],
-        'telefone': dados['telefone'],
-        'criado_em': dados['data_registro'],
-        'cpf': null,
-        'cnpj': null,
-        'tipo_veiculo': null,
-        'endereco': null,
-      };
-
-      if (dados['cargo'] == 'empresa') {
-        final empresa = dados['empresa'];
-        if (empresa != null) {
-          resultado['cnpj'] = empresa['cnpj'];
-          final List<dynamic>? enderecos = empresa['enderecos'];
-          if (enderecos != null && enderecos.isNotEmpty) {
-            final enderecoProprio = enderecos.firstWhere(
-              (e) => e['tipo'] == 'proprio',
-              orElse: () => <String, dynamic>{},
-            );
-            if (enderecoProprio.isNotEmpty) {
-              resultado['endereco'] =
-                  '${enderecoProprio['logradouro']}, ${enderecoProprio['numero']}';
-            }
-          }
-        }
-      }
-
-      if (dados['cargo'] == 'entregador') {
-        final entregador = dados['entregador'];
-        if (entregador != null) {
-          resultado['cpf'] = entregador['cpf'];
-          resultado['tipo_veiculo'] = entregador['tipo_veiculo'];
-        }
-      }
-
-      return resultado;
-    } catch (e) {
-      return null;
-    }
-  }
 
   void _preencherControllers(Map<String, dynamic> dados) {
     _nomeController.text = dados['nome'] ?? '';
@@ -99,60 +48,22 @@ class _DadosState extends State<Dados> {
     _telefoneController.text = dados['telefone'] ?? '';
   }
 
-  Future<void> _salvar() async {
-    final nome = _nomeController.text.trim();
-    final email = _emailController.text.trim();
-    final telefone = _telefoneController.text.trim();
-
-    if (nome.isEmpty || email.isEmpty) {
-      mostraSnackBar.show(context, 'Preencha todos os campos.', true);
-      return;
-    }
-
+  Future<void> salvar () async {
+    final user = Usuario(telefone: _telefoneController.text.trim(), nome: _nomeController.text.trim(), email: _emailController.text.trim(), senha: '', cargo: Cargo.administrador);
     setState(() => salvando = true);
-
-    try {
-      final client = Api();
-      final resposta = await client.put('/perfil', {
-        'nome': nome,
-        'email': email,
-        'telefone': telefone,
-      });
-
-      if (resposta.statusCode == 200) {
-        // Atualiza SharedPreferences local
-        final prefs = await SharedPreferences.getInstance();
-        final usuarioJson = prefs.getString('usuario');
-        if (usuarioJson != null) {
-          final dados = jsonDecode(usuarioJson);
-          dados['nome'] = nome;
-          dados['email'] = email;
-          dados['telefone'] = telefone;
-          await prefs.setString('usuario', jsonEncode(dados));
-        }
-
-        if (mounted) {
-          setState(() {
-            editando = false;
-            salvando = false;
-            _dadosFuture = carregaDados();
-          });
-          mostraSnackBar.show(context, 'Dados atualizados com sucesso!', false);
-        }
-      } else {
-        final body = jsonDecode(resposta.body);
-        if (mounted) {
-          setState(() => salvando = false);
-          mostraSnackBar.show(context, body['mensagem'] ?? 'Erro ao salvar.', true);
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => salvando = false);
-        mostraSnackBar.show(context, 'Erro: $e', true);
-      }
-    }
+    String resposta = await salvarUsuario(user);
+    bool erro = resposta != 'Dados atualizados com sucesso!';
+    if (!mounted) {return;}
+    mostraSnackBar.show(context, resposta, erro);
+     setState(() {
+        editando = false;
+        salvando = false;
+      _dadosFuture = carregaDados();
+    });
+    
   }
+  
+
 
   void _abrirDialogSenha() {
     final _senhaAtual = TextEditingController();
@@ -215,8 +126,8 @@ class _DadosState extends State<Dados> {
                 mostraSnackBar.show(context, 'As senhas não conferem', true);
                 return;
               }
-              if (_novaSenha.text.length < 6) {
-                mostraSnackBar.show(context, 'A nova senha deve ter no mínimo 6 caracteres', true);
+              if (_novaSenha.text.length < 8) {
+                mostraSnackBar.show(context, 'A nova senha deve ter no mínimo 8 caracteres', true);
                 return;
               }
 
@@ -373,7 +284,7 @@ class _DadosState extends State<Dados> {
                   ? null
                   : () {
                       if (editando) {
-                        _salvar();
+                        salvar();
                       } else {
                         setState(() => editando = true);
                       }
@@ -431,7 +342,7 @@ class _DadosState extends State<Dados> {
                             radius: 36,
                             backgroundColor: cores.primary.withValues(alpha: 0.15),
                             child: Text(
-                              nome.isNotEmpty ? nome[0].toUpperCase() : 'U',
+                              nome[0].toUpperCase(),
                               style: TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,

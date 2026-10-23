@@ -40,7 +40,7 @@ class _LoginState extends State<Login> {
     );
 
     if (resposta == "Login realizado com sucesso") {
-      Navigator.pushReplacementNamed(context, '/${widget.cargo}');
+      Navigator.pushNamedAndRemoveUntil(context,'/${widget.cargo}',(route) => false,); 
       mostraSnackBar.show(context, resposta, false);
     } else {
       mostraSnackBar.show(context, resposta, true);
