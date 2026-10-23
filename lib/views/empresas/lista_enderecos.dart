@@ -3,6 +3,7 @@ import 'package:rotaja/controller/enderecoController.dart';
 import 'package:rotaja/model/endereco.dart';
 import 'package:rotaja/views/cadastros/enderecoCadastro.dart';
 import 'package:rotaja/views/animacoes/animacao_carregando.dart';
+import 'package:rotaja/views/widgets/snackbar.dart';
 
 class ListaEnderecos extends StatefulWidget {
   const ListaEnderecos({super.key});
@@ -52,8 +53,15 @@ class _ListaEnderecosState extends State<ListaEnderecos> {
               foregroundColor: Colors.white,
             ),
             onPressed: () async {
-              await removeEndereco(endereco);
+              final resposta = await removeEndereco(endereco);
               Navigator.pop(ctx);
+
+              if(resposta == 'Endereço removido com sucesso!'){
+                mostraSnackBar.show(context,resposta,true);
+              }else{
+                mostraSnackBar.show(context,resposta,false);
+              }
+            
               setState(() {
                 _enderecosFuture = listarSharedPreferences();
               });
@@ -76,8 +84,6 @@ class _ListaEnderecosState extends State<ListaEnderecos> {
           'Meus Endereços',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        centerTitle: true,
-        elevation: 0,
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
@@ -113,7 +119,7 @@ class _ListaEnderecosState extends State<ListaEnderecos> {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: cores.primary.withOpacity(0.08),
+                        color: cores.primary.withValues(alpha: 0.08),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -171,18 +177,18 @@ class _ListaEnderecosState extends State<ListaEnderecos> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: ehProprio
-            ? cores.primary.withOpacity(0.04)
+            ? cores.primary.withValues(alpha: 0.04)
             : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: ehProprio
-              ? cores.primary.withOpacity(0.4)
-              : Colors.grey.withOpacity(0.15),
+              ? cores.primary.withValues(alpha: 0.4)
+              : Colors.grey.withValues(alpha: 0.15),
           width: ehProprio ? 1.5 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -195,8 +201,8 @@ class _ListaEnderecosState extends State<ListaEnderecos> {
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: ehProprio
-                  ? cores.primary.withOpacity(0.15)
-                  : cores.primary.withOpacity(0.08),
+                  ? cores.primary.withValues(alpha: 0.15)
+                  : cores.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -215,7 +221,7 @@ class _ListaEnderecosState extends State<ListaEnderecos> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: cores.primary.withOpacity(0.1),
+                      color: cores.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     margin: const EdgeInsets.only(bottom: 6),

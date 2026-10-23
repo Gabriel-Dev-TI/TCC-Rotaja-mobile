@@ -43,6 +43,37 @@ Future<double> carregarGanhos() async {
     return double.tryParse(valor.toString()) ?? 0;
 }
 
+Future<double> carregarGanhosAPI() async {
+    try {
+      final client = Api();
+      final resposta = await client.get('/ganhos');
+
+      if (resposta.statusCode == 200 && resposta.body.isNotEmpty) {
+        // Se retornou os ganhos atualizados salva localmente tambem
+
+        // Encontra os dados salvos
+        final prefs = await SharedPreferences.getInstance();
+        final usuarioJson = prefs.getString('usuario');
+        final jsonBody = jsonDecode(resposta.body);
+
+        if (usuarioJson != null){
+        final dados = jsonDecode(usuarioJson);
+
+        // Salva o novo ganho
+        dados['total_ganhos'] = jsonBody['ganhos'];
+        final usuarioAtualizado = jsonEncode(dados);
+        prefs.setString('usuario', usuarioAtualizado);
+        }
+
+        // Retorna o ganho
+        return double.tryParse(jsonBody['ganhos']) ?? 0;
+      }
+      return 0;
+    } catch (e) {
+      return 0;
+    }
+}
+
   Future<List<Entregas>?> getEntregasDisponiveis() async {
     try {
       final client = Api();

@@ -1,10 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:rotaja/model/entregas.dart';
-import 'package:rotaja/repository/api.dart';
 import 'package:rotaja/views/animacoes/animacao_carregando.dart';
 import 'package:rotaja/views/animacoes/animacao_erro.dart';
 import 'package:rotaja/views/widgets/status.dart';
+import 'package:rotaja/controller/entregaController.dart';
 
 class Historico extends StatefulWidget {
   const Historico({super.key});
@@ -20,23 +19,6 @@ class _HistoricoState extends State<Historico> {
   void initState() {
     super.initState();
     _historicoFuture = getHistorico();
-  }
-
-  Future<List<Entregas>?> getHistorico() async {
-    try {
-      final resposta = await Api().get('/historico');
-
-      if (resposta.statusCode == 200 && resposta.body.isNotEmpty) {
-        final jsonBody = jsonDecode(resposta.body);
-        final List lista = jsonBody['dados'] ?? [];
-
-        //Converte o json em map
-        return lista.map((item) => Entregas.fromJson(item)).toList();
-      }
-      return null;
-    } catch (e) {
-      return null;
-    }
   }
 
   void _atualizarHistorico() {
@@ -83,7 +65,7 @@ class _HistoricoState extends State<Historico> {
                             Container(
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
-                                color: cores.primary.withOpacity(0.08),
+                                color: cores.primary.withValues(alpha:0.08),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
@@ -152,18 +134,16 @@ class _HistoricoState extends State<Historico> {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.grey.withOpacity(0.12)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.12)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
+      child: InkWell(
           onTap: () {
             Navigator.pushNamed(context, '/produto', arguments: entrega.id);
           },
@@ -183,7 +163,7 @@ class _HistoricoState extends State<Historico> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: cores.primary.withOpacity(0.08),
+                              color: cores.primary.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Icon(
@@ -255,7 +235,6 @@ class _HistoricoState extends State<Historico> {
             ),
           ),
         ),
-      ),
     );
   }
 }

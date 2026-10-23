@@ -1,11 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:rotaja/model/entregas.dart';
-import 'package:rotaja/repository/api.dart';
 import 'package:rotaja/views/animacoes/animacao_carregando.dart';
 import 'package:rotaja/views/animacoes/animacao_erro.dart';
 import 'package:rotaja/views/widgets/status.dart';
+import 'package:rotaja/controller/empresaController.dart';
 
 class Painel extends StatefulWidget {
   const Painel({super.key});
@@ -21,39 +20,18 @@ class _PainelState extends State<Painel> {
   @override
   void initState() {
     super.initState();
-    _entregasAndamento = _getEntregasAndamento();
+    _entregasAndamento = getEntregasAndamento();
     _timer = Timer.periodic(const Duration(seconds: 30), (_) {
       setState(() {
-        _entregasAndamento = _getEntregasAndamento();
+        _entregasAndamento = getEntregasAndamento();
       });
     });
   }
 
   @override
   void dispose() {
-    stopTimer();
+     _timer?.cancel();
     super.dispose();
-  }
-
-  void stopTimer() {
-    _timer?.cancel();
-  }
-
-  Future<List<Entregas>?> _getEntregasAndamento() async {
-    try {
-      final client = Api();
-      final resposta = await client.get('/entregas');
-
-      if (resposta.statusCode == 200 && resposta.body.isNotEmpty) {
-        final jsonBody = jsonDecode(resposta.body);
-        final List lista = jsonBody['dados'] ?? [];
-
-        return lista.map((item) => Entregas.fromJson(item)).toList();
-      }
-      return null;
-    } catch (e) {
-      return null;
-    }
   }
 
   @override
@@ -76,7 +54,7 @@ class _PainelState extends State<Painel> {
             const SizedBox(height: 24),
 
             ElevatedButton(onPressed:() => Navigator.pushNamed(context, "/entregaCadastro"), child:Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.all(16.0),
               child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -114,7 +92,6 @@ class _PainelState extends State<Painel> {
             )),
 
             const SizedBox(height: 32),
-
             Text('Entregas em andamento', style: tema.textTheme.titleMedium),
             const SizedBox(height: 12),
 
@@ -147,12 +124,19 @@ class _PainelState extends State<Painel> {
 
                   final listaEntregas = snapshot.data!;
 
-                  return ListView.separated(
+                  return RefreshIndicator(
+                      onRefresh: () async {
+                    setState(() {
+                       _entregasAndamento = getEntregasAndamento();
+                    });},
+                      child: ListView.separated(
                     physics: const BouncingScrollPhysics(),
                     itemCount: listaEntregas.length,
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: 12),
                     itemBuilder: (context, index) {
+                      final cores = Theme.of(context).colorScheme;
+
                       final entrega = listaEntregas[index];
 
                       final String nomeExibicao =
@@ -187,7 +171,7 @@ class _PainelState extends State<Painel> {
                             border: Border.all(color: Colors.grey.shade200),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),
@@ -216,9 +200,9 @@ class _PainelState extends State<Painel> {
                                       children: [
                                         Column(
                                           children: [
-                                            const Icon(
+                                            Icon(
                                               Icons.radio_button_checked,
-                                              color: Colors.deepPurple,
+                                              color: cores.primary,
                                               size: 20,
                                             ),
                                             Container(
@@ -234,11 +218,11 @@ class _PainelState extends State<Painel> {
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              const Text(
+                                              Text(
                                                 'Ponto de Coleta',
                                                 style: TextStyle(
                                                   fontSize: 12,
-                                                  color: Colors.deepPurple,
+                                                  color: cores.primary,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
@@ -262,11 +246,11 @@ class _PainelState extends State<Painel> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        const Column(
+                                         Column(
                                           children: [
                                             Icon(
                                               Icons.location_on,
-                                              color: Colors.redAccent,
+                                              color: cores.error,
                                               size: 22,
                                             ),
                                           ],
@@ -277,11 +261,11 @@ class _PainelState extends State<Painel> {
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              const Text(
+                                              Text(
                                                 'Ponto de Entrega',
                                                 style: TextStyle(
                                                   fontSize: 12,
-                                                  color: Colors.redAccent,
+                                                  color: cores.error,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
@@ -315,10 +299,10 @@ class _PainelState extends State<Painel> {
                                   const SizedBox(height: 50),
                                   Text(
                                     precoFormatado,
-                                    style: const TextStyle(
+                                    style:  TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF7B33F4),
+                                      color: cores.primary,
                                     ),
                                   ),
                                 ],
@@ -328,6 +312,7 @@ class _PainelState extends State<Painel> {
                         ),
                       );
                     },
+                   ),
                   );
                 },
               ),

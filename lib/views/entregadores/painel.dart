@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:rotaja/controller/entregaController.dart';
 import 'package:rotaja/model/entregas.dart';
 import 'package:rotaja/controller/entregadorController.dart';
 import 'package:rotaja/views/animacoes/animacao_erro.dart';
 import 'package:rotaja/views/animacoes/animacao_carregando.dart';
+import 'package:rotaja/views/widgets/snackbar.dart';
 
 
 class Painel extends StatefulWidget {
@@ -17,12 +19,21 @@ class _PainelState extends State<Painel> {
   late Future<List<Entregas>?> _entregasDisponiveisFuture;
   Timer? _timer;
   double _totalGanhos = 0;
+  bool buscandoGanho = false;
 
   @override
-  void initState() {
+  initState(){
     super.initState();
+    // Busca no banco de dados as entregas disponiveis
     _entregasDisponiveisFuture = getEntregasDisponiveis();
+
+    // Caso esteja sem internet busca os ganhos salvos no shared
+    carregaGanhosLocal();
+
+    // Busca na API os ganhos atualizados
     _carregarGanhos();
+
+    //Coloca um timer de 30 segundo para repetir a requisição de entregas
     _timer = Timer.periodic(const Duration(seconds: 30), (_) {
       if (mounted) {
         setState(() {
@@ -31,25 +42,42 @@ class _PainelState extends State<Painel> {
       }
     });
   }
+  Future<void> carregaGanhosLocal() async{
+    _totalGanhos = await carregarGanhos();
+  }
 
   Future<void> _carregarGanhos() async {
-  final ganhos = await carregarGanhos();
+  if (buscandoGanho) return;
+  setState(() => buscandoGanho = true);
+  
+  final ganhos = await carregarGanhosAPI();
   if (mounted) {
     setState(() {
       _totalGanhos = ganhos;
+      buscandoGanho = false;
     });
   }
+  setState(() => buscandoGanho = false);
 }
+
+ aceitarEntrega(int id) async{
+  final entrega = await mudarStatus(Status.aceita, id);
+  if(entrega == null){
+    mostraSnackBar.show(context, 'Não foi possível aceitar a entrega', true);
+  }
+  else{
+    setState(() {_entregasDisponiveisFuture = getEntregasDisponiveis();});
+    mostraSnackBar.show(context, 'Entrega aceita.', false);
+  }
+
+ }
 
   @override
   void dispose() {
-    stopTimer();
+    _timer?.cancel();
     super.dispose();
   }
-  
-  void stopTimer() {
-    _timer?.cancel();
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +102,7 @@ class _PainelState extends State<Painel> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(onPressed: _carregarGanhos, child:Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.all(16.0),
               child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -89,7 +117,7 @@ class _PainelState extends State<Painel> {
                         ),
                       ),
                       const SizedBox(height: 4),
-                        Text(
+                        Text(buscandoGanho ? 'Atualizando Saldo...':
                           'R\$ ${_totalGanhos.toStringAsFixed(2).replaceAll('.', ',')}',
                           style: tema.bodySmall?.copyWith(
                             color: Colors.white70, 
@@ -111,29 +139,10 @@ class _PainelState extends State<Painel> {
               ),
             )),
             const SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
+            Text(
                   'Entregas disponíveis',
                   style: tema.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _entregasDisponiveisFuture = getEntregasDisponiveis();
-                    });
-                  },
-                  child: Text(
-                    'Atualizar',
-                    style: TextStyle(
-                      color: cores.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
             const SizedBox(height: 12),
             FutureBuilder<List<Entregas>?>(
               future: _entregasDisponiveisFuture,
@@ -166,8 +175,12 @@ class _PainelState extends State<Painel> {
                     ),
                   );
                 }
-
-                return ListView.separated(
+                return RefreshIndicator(
+                      onRefresh: () async {
+                    setState(() {
+                      _entregasDisponiveisFuture = getEntregasDisponiveis();
+                    });},
+                      child: ListView.separated(
                   shrinkWrap: true,
                   itemCount: listaEntregas.length,
                   separatorBuilder: (context, index) =>
@@ -176,7 +189,7 @@ class _PainelState extends State<Painel> {
                     final entrega = listaEntregas[index];
                     return _buildEntregaCard(tema, cores, entrega);
                   },
-                );
+                ));
               },
             ),
           ],
@@ -206,9 +219,7 @@ class _PainelState extends State<Painel> {
 
     final botaoTexto = (entrega.status == Status.aceita || entrega.status == Status.em_transito) ? 'Vizualizar rota' : 'Aceitar entrega';
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
+    return  InkWell(
         onTap: () {
           if (entrega.id != null) {
             Navigator.pushNamed(
@@ -349,13 +360,12 @@ class _PainelState extends State<Painel> {
                 height: 44,
                 child: ElevatedButton(
                   onPressed: () {
-                    if (entrega.id != null) {
-                      Navigator.pushNamed(
-                        context,
-                        '/mapa',
-                        arguments: entrega.id,
-                      );
-                    }
+                    if(entrega.status == Status.pendente){
+                      setState(() {
+                        aceitarEntrega(entrega.id!);
+                      });
+                    }else{
+                    Navigator.pushNamed(context,'/mapa',);}
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: cores.primary,
@@ -377,7 +387,6 @@ class _PainelState extends State<Painel> {
             ],
           ),
         ),
-      ),
     );
   }
 }

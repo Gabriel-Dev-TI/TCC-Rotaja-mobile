@@ -66,7 +66,7 @@ class _EntregaCadastroState extends State<EntregaCadastro> {
 
     if (mounted) {
       if (!cadastroFalhou) {
-        Navigator.pop(context);
+        Navigator.pushNamedAndRemoveUntil(context,'/empresa',(route) => false,);   
       }
       mostraSnackBar.show(context, resposta, cadastroFalhou);
       setState(() => isLoading = false);

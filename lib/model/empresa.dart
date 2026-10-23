@@ -24,10 +24,10 @@ class Empresa extends Usuario {
       email: json['email'] ?? '',
       senha: json['senha'] ?? '',
       cargo: Cargo.values.firstWhere((e) => e.name == json['cargo'],orElse: () => Cargo.empresa,),
-      criadoEm: json['created_at'] != null? DateTime.tryParse(json['created_at'].toString()): null,
+      criadoEm: json['created_at'] ?? json['data_registro'],
       cnpj: json['cnpj'] ?? '',
       telefone: json['telefone'] ?? '',
-      endereco:json['endereco'] != null && json['endereco'] is Map<String, dynamic> ? Endereco.fromJson(json['endereco']) : null,
+      endereco: json['endereco'] != null ? Endereco.fromJson(json['endereco']): null,
     );
   }
 
@@ -39,7 +39,6 @@ class Empresa extends Usuario {
       'email': email,
       'senha': senha,
       'cargo': cargo.name,
-      'created_at': criadoEm?.toIso8601String(),
       'cnpj': cnpj,
       'telefone': telefone,
       'endereco': endereco?.toJson(),

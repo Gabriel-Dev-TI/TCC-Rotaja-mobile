@@ -1,29 +1,21 @@
 import 'dart:convert';
-import 'package:rotaja/model/endereco.dart';
 import 'package:rotaja/model/entregas.dart';
 import 'package:rotaja/repository/api.dart';
-import 'package:http/http.dart' as http;
 
 Future<List<Entregas>?> getHistorico() async {
   try {
-    final client = Api();
-    final resposta = await client.get('/historico');
+    final resposta = await Api().get('/historico');
 
     if (resposta.statusCode == 200 && resposta.body.isNotEmpty) {
       final jsonBody = jsonDecode(resposta.body);
+      // Pega a lista de json
+      final List lista = jsonBody['dados'] ?? [];
 
-      // Trata se o Laravel retornar dentro de 'dados' ou se vier a lista direta
-      final List listData = jsonBody is Map<String, dynamic> 
-          ? (jsonBody['dados'] ?? jsonBody['data'] ?? []) 
-          : jsonBody;
-
-      return listData.map((item) {
-        return Entregas.fromJson(item);
-      }).toList();
+      //Converte o json em map
+      return lista.map((item) => Entregas.fromJson(item)).toList();
     }
     return null;
   } catch (e) {
-    print('Erro ao carregar histórico: $e');
     return null;
   }
 }
@@ -33,7 +25,6 @@ Future<String> cadastraEntrega(Entregas entrega) async {
     final resposta = await Api().post('/entregas', entrega.toJson());
 
     if (resposta.statusCode == 201 && resposta.body.isNotEmpty) {
-
       return 'Entrega cadastrada com sucesso!';
     } else if (resposta.body.isNotEmpty) {
       final dados = jsonDecode(resposta.body);
@@ -57,7 +48,54 @@ Future<Entregas?> getEntregaId(dynamic id) async {
     }
     return null;
   } catch (e) {
-    print('Erro ao buscar entrega por ID: $e');
+    return null;
+  }
+}
+
+Future<Entregas> buscarEntrega(int id) async {
+  final client = Api();
+  final resposta = await client.get('/entregas/$id');
+  if (resposta.statusCode == 200) {
+    final body = jsonDecode(resposta.body);
+    return Entregas.fromJson(body['dados']);
+  }
+  throw Exception('Erro');
+}
+
+Future<String> cancelarEntrega(Entregas entrega) async {
+  try {
+    final client = Api();
+    final resposta = await client.put(
+      '/entregas/${entrega.id}',
+      entrega.toJson(),
+    );
+    if (resposta.statusCode == 200) {
+      return 'Entrega cancelada.';
+    } else {
+      final body = jsonDecode(resposta.body);
+      return body['mensagem'] ?? 'Erro ao cancelar a entrega.';
+    }
+  } catch (e) {
+    return 'Erro ao cancelar a entrega.';
+  }
+}
+
+Future<Entregas?> mudarStatus(Status novoStatus,int id, {String? observacao,}) async {
+  try {
+    final body = <String, dynamic>{'status': novoStatus.name};
+    if (observacao != null && observacao.isNotEmpty) {
+      body['observacoes'] = observacao;
+    }
+
+    final resposta = await Api().put('/entregas/${id}', body);
+
+    if (resposta.statusCode == 200 && resposta.body.isNotEmpty) {
+      final data = jsonDecode(resposta.body);
+      return Entregas.fromJson(data['dados']);
+    } else {
+      return null;
+    }
+  } catch (e) {
     return null;
   }
 }
